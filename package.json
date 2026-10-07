@@ -1,0 +1,20 @@
+{
+  "name": "cartel-barca-pwa",
+  "version": "2.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node dev/server.js",
+    "test": "node --test test/*.test.js",
+    "push:keys": "node dev/generate-push-keys.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "wrangler": "4.148.0"
+  },
+  "overrides": {
+    "sharp": "0.35.5"
+  }
+}

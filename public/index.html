@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#071327">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="The next Barça match, beautifully. Fixtures, delayed results and an iPhone calendar subscription.">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Cartel · Barça fixtures</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <a class="brand" href="#match" aria-label="Barça home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M8 8h10v24H8z" fill="#62a5ff"/><path d="M21 8h5a6 6 0 0 1 0 12h-5z" fill="#ee5387"/><path d="M21 22h6a5 5 0 0 1 0 10h-6z" fill="#ee5387"/></svg></span><span>Barça<span class="brand-sub">Matchday</span></span></a>
+      <div class="header-actions"><button class="icon-button" data-action="search" aria-label="Search fixtures"></button><button class="icon-button" data-action="refresh" aria-label="Refresh fixtures"></button></div>
+    </header>
+    <div id="notice" class="notice" hidden></div>
+    <nav id="section-tabs" class="section-tabs" aria-label="Club sections"></nav>
+    <main id="main" tabindex="-1"><div class="loading"><span class="eyebrow">MATCHDAY, MADE SIMPLE</span><h1>Your next<br>90 minutes.</h1><p>Loading fixtures…</p></div></main>
+    <footer class="source-footer" id="source-footer"></footer>
+    <nav class="bottom-nav" aria-label="Main navigation"></nav>
+  </div>
+  <dialog id="sheet" aria-labelledby="sheet-title"><div id="sheet-body"></div></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
