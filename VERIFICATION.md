@@ -1,5 +1,13 @@
 # Verification · 7 October 2026
 
+## Version 2.5.1
+
+72 automated checks pass. New timezone checks launch the runtime in Chicago, Gaza and Kolkata to confirm automatic detection, accept the legacy Calcutta alias, preserve a manual zone against a different phone zone, migrate the old Barcelona preference and fall back safely from invalid preferences. Time conversions verify Chicago winter/summer offsets and the spring clock jump, Gaza/Hebron winter/summer offsets and fixture dates across midnight. Date-only fixtures retain their published date.
+
+The automatic setting reads the phone/browser timezone on demand, on return to the app and every minute. All existing poster, list, details, month calendar and share formatting use the selected named timezone. Apple Calendar continues to use the calendar device settings. Manual choices are kept on the device.
+
+Published Worker version: `7f5df92e-5f2a-4c39-8748-64e5f3819cc8`. Browser checks confirmed the new timezone menu, an 11:30 Chicago kickoff on the poster and in match details, and a 19:30 Gaza kickoff for the same 16:30 UTC fixture. The Gaza preference survived reload. The timezone choice was restored to Automatic after verification. Device timezone detection was also exercised in actual runtime processes; an iPhone location/timezone change was not physically tested.
+
 ## Version 2.5.0
 
 68 automated checks pass. Added checks cover countdown seconds and unit boundaries, provider-confirmed LIVE/half-time states, unknown scores, 12/24-hour formatting, five-minute match refreshes, exact-match venue corrections, date-only fixture timezone handling, concise calendar notes and location fallback. Calendar tests verify stable UIDs through date changes, conversion to timed events and cancellation/postponement of an all-day entry. Existing push, roster, history, tables, photo, offline and calendar escaping/ETag checks pass.

@@ -2,7 +2,7 @@
 
 A lightweight mobile-first PWA: a stadium match card, searchable fixtures and results, a monthly calendar, News / Squad / Stats sections, and an iPhone calendar subscription. Plain HTML, CSS and JavaScript; Cloudflare Worker + KV backend.
 
-## Design and features · version 2.5.0
+## Design and features · version 2.5.1
 
 - A blended translucent header with an original blue/red monogram, Barça / Matchday branding, and no Cartel word in the banner. Floating glass cards, soft blue/garnet lighting, blue/red active-tab accents and a floating bottom navigation bar.
 - Home: next match with full club names and real crests, prominent kickoff, glass days/hours/minutes/seconds countdown, LIVE/half-time status and the latest delayed score, Previous / Then / After fixture strip, recent form and match sharing. Sharing uses the device share sheet or copy fallback; a public real-data deployment includes a match link.
@@ -32,6 +32,12 @@ npm test
 ```
 
 The preview uses clearly labelled **illustrative fixtures**, anchored to the day it starts. It is not the real Barcelona schedule. Calendar subscriptions and single-event exports are disabled for sample data. `node dev/server.js --empty` previews the initial state with no data connected. `node dev/server.js --live-preview` displays an explicitly illustrative 2–1 live poster; this never touches production data.
+
+## Release 2.5.1
+
+Automatic is the default timezone option and uses the phone/browser system timezone. It rechecks on app resume and every minute, so displayed times follow device timezone changes. Manual choices include Barcelona, Palestine (Gaza and West Bank separately), Chicago, London, Paris, New York, Los Angeles, Riyadh, Dubai, Tokyo and UTC. Named IANA zones use the device’s timezone database for daylight saving; there are no fixed-offset calculations. Preferences remain local, invalid saved settings fall back to Automatic, and the older Barcelona preference migrates. The current 12/24-hour setting applies in every selected zone. Confirmed kickoff instants and local calendar days convert together; date-only fixtures retain their published day. Apple Calendar follows its own device settings.
+
+72 automated checks pass, including actual runtime timezone detection, alias compatibility, Chicago/Palestine seasonal offsets, the Chicago spring transition and cross-midnight fixture dates.
 
 ## Release 2.5.0
 
