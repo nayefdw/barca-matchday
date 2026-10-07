@@ -1,3 +1,4 @@
+import {refreshInterval} from './refresh.js';
 // RFC 8291 aes128gcm encryption and RFC 8292 VAPID, using Web Crypto.
 const utf8=new TextEncoder();
 export const LEAD_TIMES=[15,30,60,120,1440];
@@ -69,8 +70,10 @@ export async function pushRequest(request,env){
 export function dueReminders(fixtures,subscriber,now){return fixtures.filter(f=>f.timeConfirmed&&f.status==='TIMED'&&Date.parse(f.kickoffUtc)>now).filter(f=>{const due=Date.parse(f.kickoffUtc)-subscriber.leadMinutes*60000,mark=f.id+'|'+f.kickoffUtc+'|'+subscriber.leadMinutes;return now>=due&&now-due<10*60000&&!subscriber.sent?.[mark];});}
 export async function sendReminders(env,{now=Date.now(),fetcher=fetch}={}){
  if(!pushConfigured(env))return {skipped:'not-configured'};
- const snapshot=await env.FIXTURES.get('snapshot','json');
- if(!snapshot||snapshot.demo||now-Date.parse(snapshot.checkedAt)>2*3600000)return {skipped:'no-fresh-schedule'};
+ const snapshot=await env.FIXTURES.get('snapshot','json'),checkedAt=Date.parse(snapshot?.checkedAt);
+ // A healthy schedule is checked every six hours until matchday approaches.
+ // Allow one missed check, using the same hourly/six-hour cadence as fixtures.
+ if(!snapshot||snapshot.demo||!Array.isArray(snapshot.fixtures)||!Number.isFinite(checkedAt)||now-checkedAt>refreshInterval(snapshot,now)*2)return {skipped:'no-fresh-schedule'};
  const list=await env.FIXTURES.list({prefix:'push_sub_',limit:20});let sent=0;
  for(const item of list.keys){const subscriber=await env.FIXTURES.get(item.name,'json');if(!subscriber)continue;
    for(const fixture of dueReminders(snapshot.fixtures,subscriber,now)){

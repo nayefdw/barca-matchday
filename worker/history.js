@@ -1,5 +1,6 @@
 import {clubTeam} from '../public/teams.js';
 import {recentMeetings} from '../public/history.js';
+import {archivedMeetings,mergeHistory} from './history-archive.js';
 
 const opponentId = match => match.homeTeam.id===81?match.awayTeam.id:match.homeTeam.id;
 export function normalizeHistory(payload, match, checkedAt) {
@@ -33,12 +34,19 @@ export async function refreshHistory(env,{now=Date.now(),fetcher=fetch}={}) {
   const candidates=[...new Map([...future,...past].filter(f=>/^fd-\d+$/.test(f.id)).map(f=>[opponentId(f),f])).values()];
   // Prefer an upcoming reference for each opponent.
   for (const f of future.slice().reverse()) {const index=candidates.findIndex(c=>opponentId(c)===opponentId(f));if(index>=0)candidates[index]=f;}
-  let attempted=0, updated=0;
-  for (const match of candidates) {
-    if(attempted>=2)break;
+  // Warm a Champions League rival as well as the nearest league rival. A long
+  // league schedule must not leave later European opponents perpetually cold.
+  const due=[];
+  for(const match of candidates){
     const key='history_'+opponentId(match),meta=await env.FIXTURES.get(key+'_meta','json')||{};
     const wait=meta.accessUnavailable?86400000:3600000;
     if(meta.lastAttemptAt&&now-Date.parse(meta.lastAttemptAt)<wait || meta.lastSuccessAt&&now-Date.parse(meta.lastSuccessAt)<86400000)continue;
+    due.push({match,key,meta});
+  }
+  const european=due.find(entry=>entry.match.competition==='CL'),league=due.find(entry=>entry.match.competition!=='CL');
+  const selected=[...new Set([european,league,...due].filter(Boolean))].slice(0,2);
+  let attempted=0, updated=0;
+  for (const {match,key,meta} of selected) {
     attempted++;const at=new Date(now).toISOString();
     await env.FIXTURES.put(key+'_meta',JSON.stringify({...meta,lastAttemptAt:at}));
     try {
@@ -62,9 +70,13 @@ export async function historyResponse(request, env) {
   const match=snapshot.fixtures.find(f=>f.id===id);
   if(!match)return Response.json({error:'Match not found'},{status:404});
   const key='history_'+opponentId(match),history=await env.FIXTURES.get(key,'json'),meta=await env.FIXTURES.get(key+'_meta','json')||{};
+  const archive=snapshot.demo?[]:archivedMeetings(match);
+  const fixtures=recentMeetings(mergeHistory([...(history?.fixtures||[]),...snapshot.fixtures],archive),match);
+  const archiveUsed=fixtures.some(f=>f.id.startsWith('archive-'));
+  const sources=[...new Map(fixtures.filter(f=>f.sourceUrl).map(f=>[f.sourceUrl,{name:f.source,url:f.sourceUrl}])).values()];
   const payload={schemaVersion:1,matchId:id,opponentId:opponentId(match),demo:!!snapshot.demo,
     checkedAt:history?.checkedAt||snapshot.checkedAt,limited:!history,refreshFailed:!!meta.failures,
     stale:!!history&&Date.now()-Date.parse(history.checkedAt)>48*3600000,
-    fixtures:recentMeetings([...(history?.fixtures||[]),...snapshot.fixtures],match)};
+    archiveUsed,sources,fixtures};
   return new Response(request.method==='HEAD'?null:JSON.stringify(payload),{headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
 }

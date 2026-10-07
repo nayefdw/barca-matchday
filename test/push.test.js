@@ -47,3 +47,19 @@ test('reminders use confirmed kickoffs, respect lead time and revisions, and rem
  const saved=await env.FIXTURES.get('push_sub_test','json');assert.equal(dueReminders([{...fixture,kickoffUtc:new Date(now+35*60000).toISOString()}],saved,now+5*60000).length,1);
  await env.FIXTURES.put('push_sub_test',JSON.stringify(subscriber));await sendReminders(env,{now,fetcher:async()=>new Response('',{status:410})});assert.equal(await env.FIXTURES.get('push_sub_test','json'),null);
 });
+test('one-day reminders accept the healthy six-hour schedule while close matches require an hourly check',async()=>{
+ const {env}=await setup(),{value}=await subscription(),now=Date.parse('2026-10-07T12:00:00Z');
+ const fixture={id:'fd-day',status:'TIMED',timeConfirmed:true,kickoffUtc:new Date(now+24*3600000).toISOString(),homeTeam:{name:'FC Barcelona'},awayTeam:{name:'Getafe CF'},competitionName:'La Liga'};
+ const subscriber={subscription:value,leadMinutes:1440,sent:{}};
+ await env.FIXTURES.put('snapshot',JSON.stringify({demo:false,checkedAt:new Date(now-4*3600000).toISOString(),fixtures:[fixture]}));
+ await env.FIXTURES.put('push_sub_test',JSON.stringify(subscriber));let requests=0;
+ const fetcher=async()=>{requests++;return new Response('',{status:201})};
+ assert.equal((await sendReminders(env,{now,fetcher})).sent,1);assert.equal(requests,1);
+ await env.FIXTURES.put('snapshot',JSON.stringify({demo:false,checkedAt:new Date(now-13*3600000).toISOString(),fixtures:[fixture]}));
+ assert.deepEqual(await sendReminders(env,{now,fetcher}),{skipped:'no-fresh-schedule'});
+ const close={...fixture,kickoffUtc:new Date(now+30*60000).toISOString()};
+ await env.FIXTURES.put('snapshot',JSON.stringify({demo:false,checkedAt:new Date(now-4*3600000).toISOString(),fixtures:[close]}));
+ assert.deepEqual(await sendReminders(env,{now,fetcher}),{skipped:'no-fresh-schedule'});
+ await env.FIXTURES.put('snapshot',JSON.stringify({demo:false,checkedAt:'invalid',fixtures:[fixture]}));
+ assert.deepEqual(await sendReminders(env,{now,fetcher}),{skipped:'no-fresh-schedule'});assert.equal(requests,1);
+});

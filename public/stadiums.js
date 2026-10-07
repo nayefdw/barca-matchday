@@ -25,6 +25,16 @@ export function safeStadium(value){
  if(!value||typeof value.name!=='string'||!value.name.trim()||value.name.length>180||!safePhoto(value.photo?.url)||!safePhotoCredit(value.photo?.source)||typeof value.photo.author!=='string'||!value.photo.author||typeof value.photo.license!=='string'||!value.photo.license)return null;
  return value;
 }
+export function safeVenue(value){
+ if(!value||typeof value.name!=='string'||!value.name.trim()||value.name.length>180||typeof value.checkedAt!=='string'||!Number.isFinite(Date.parse(value.checkedAt)))return null;
+ return {name:value.name.trim(),checkedAt:value.checkedAt,source:'football-data.org'};
+}
+export function matchVenue(match,venues={}){
+ const name=typeof match?.venue==='string'?match.venue.trim():'';
+ if(name&&name.length<=180&&!/^(?:tbc|tbd|n\/a|unknown)$/i.test(name))return {name,confirmed:true,source:'match'};
+ const homeGround=safeVenue(venues[match?.homeTeam?.id]);
+ return homeGround?{name:homeGround.name,confirmed:false,source:'club',note:'Club home ground · match venue not supplied'}:null;
+}
 export function stadiumArticle(venue){
  if(typeof venue!=='string'||!venue.trim()||venue.length>180||/[|\r\n]/.test(venue))return null;
  const key=venue.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
