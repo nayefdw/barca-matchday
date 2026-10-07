@@ -1,5 +1,11 @@
 # Verification · 7 October 2026
 
+## Version 2.5.3
+
+All 72 existing automated checks pass and app.js passes its syntax check. The glass bar removes the dark backing and reduces the default blur to the countdown's 5px, with a separate saved Clarity slider. Defaults are 95% transparency and 75% clarity. The old 65% default upgrades to 95%; custom values are retained. No fixture/backend data changes are included.
+
+Published Worker version: `542fd751-a47d-460e-8f37-b2a147000990`. Browser checks confirmed migration from the previous default, both 0/100 slider endpoints, a transparent surface and blur(0px) at full clarity, opacity 1 on all four navigation labels, and persistence of the checked switch plus 95%/75% after reload. The liquid background has no solid backing; its blue/white tint matches the countdown palette. Settings has no horizontal overflow at 390 × 844 or 320 × 740. Screenshots show both controls and the glass menu. Actual iPhone/Safari rendering remains untested. The local preview could not be reached this turn; browser verification used the published app.
+
 ## Version 2.5.2
 
 All 72 existing automated checks pass, and app.js passes the JavaScript syntax check. This release adds an optional Liquid Glass bottom navigation appearance with a 0–100% transparency slider in 5% steps, live preview and local device preferences. The classic appearance is the default. No backend or fixture-data changes are included.

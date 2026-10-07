@@ -2,7 +2,7 @@
 
 A lightweight mobile-first PWA: a stadium match card, searchable fixtures and results, a monthly calendar, News / Squad / Stats sections, and an iPhone calendar subscription. Plain HTML, CSS and JavaScript; Cloudflare Worker + KV backend.
 
-## Design and features · version 2.5.2
+## Design and features · version 2.5.3
 
 - A blended translucent header with an original blue/red monogram, Barça / Matchday branding, and no Cartel word in the banner. Floating glass cards, soft blue/garnet lighting, blue/red active-tab accents and a floating bottom navigation bar.
 - Home: next match with full club names and real crests, prominent kickoff, glass days/hours/minutes/seconds countdown, LIVE/half-time status and the latest delayed score, Previous / Then / After fixture strip, recent form and match sharing. Sharing uses the device share sheet or copy fallback; a public real-data deployment includes a match link.
@@ -18,7 +18,7 @@ A lightweight mobile-first PWA: a stadium match card, searchable fixtures and re
 - Calendar summary: the selected month’s published tracked match count and home/away totals; tap it to show the full monthly agenda. It respects the competition filter and includes date-only fixtures with pending kickoff times but excludes postponed/cancelled fixtures.
 - Settings: opt-in match reminders at 15/30 minutes, 1/2 hours or 1 day before confirmed kickoff. Preference changes save on the device; enabling delivery requires the public deployment and push keys. The preview does not request notification permission or send sample reminders.
 - Settings: Refresh saved fixtures shows progress, a completion time on success and a clear message when the server cannot be reached. It reloads the latest saved server snapshot; provider polling stays on the scheduled cadence.
-- Settings: Bottom bar has an optional Liquid Glass switch and a 0–100% transparency slider in 5% steps. Changes preview immediately on the navigation bar, with icons and labels kept opaque. The switch and transparency are saved on the device; the classic bar remains the default.
+- Settings: Bottom bar has an optional Liquid Glass switch and separate 0–100% transparency and clarity sliders in 5% steps. Transparency controls the light surface tint; clarity reduces backdrop blur from 20px to 0px. Changes preview immediately, with icons and labels kept opaque. Preferences are saved on the device; the classic bar remains the default.
 
 Home artwork uses the nine photographs supplied by the user, compressed to WebP (about 1.3 MB total); the original wording/watermark in the sunset photo is retained. Away artwork is sourced with photographer, licence and file links from Wikimedia Commons. Unknown grounds use the SVG stadium illustration. Photographs are historical and do not establish the current match venue. Explicit fixture venue text takes priority; when it is omitted, the separately fetched club ground is shown without an added suffix, with a note in match details that a venue change remains possible. The official schedule supplies guarded venue corrections for the checked October/November 2026 fixtures, including RAMS Park and La Cartuja; they require an exact fixture ID, date and teams and never override an explicit provider venue. Stadium photos are not treated as venue confirmation. The prior generated background is retained as an unused design archive; see [the asset prompt](ASSET-PROMPT.md). The News card retains its credited historical photo.
 
@@ -33,6 +33,12 @@ npm test
 ```
 
 The preview uses clearly labelled **illustrative fixtures**, anchored to the day it starts. It is not the real Barcelona schedule. Calendar subscriptions and single-event exports are disabled for sample data. `node dev/server.js --empty` previews the initial state with no data connected. `node dev/server.js --live-preview` displays an explicitly illustrative 2–1 live poster; this never touches production data.
+
+## Release 2.5.3
+
+The Liquid Glass bar now uses the countdown's light blue/white surface, subtle border and small shadow without the dark navy fill. Defaults are 95% transparency and 75% clarity (5px blur). Increasing clarity to 100% removes blur; both controls at 100% leave only the glass edge and readable navigation. The active tab no longer adds a separate filled tile. Existing custom transparency values are retained; the former 65% default is upgraded to 95%. The appearance switch and both values survive reload, and the updated shell cache delivers the controls to installed apps.
+
+All 72 existing checks pass. Published-browser checks confirm both slider endpoints, persistence, matching countdown tint, readable labels and no horizontal overflow at 390px and 320px. Actual Safari/iPhone rendering remains a device check.
 
 ## Release 2.5.2
 
