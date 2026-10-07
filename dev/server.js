@@ -8,6 +8,10 @@ import { sampleSnapshot, sampleTeam, sampleStandings } from './sample.js';
 const root = path.resolve(fileURLToPath(new URL('../public/', import.meta.url)));
 const port = Number(process.env.PORT || 4187);
 const demo = sampleSnapshot();
+if(process.argv.includes('--live-preview')){
+ const focus=demo.fixtures.find(f=>f.status==='TIMED'&&f.timeConfirmed&&Date.parse(f.kickoffUtc)>Date.now());
+ if(focus){focus.status='IN_PLAY';focus.score={...focus.score,home:2,away:1};focus.kickoffUtc=new Date(Date.now()-1800000).toISOString();}
+}
 const team = sampleTeam();
 try{const photos=JSON.parse(await readFile(new URL('./photo-sample.json',import.meta.url),'utf8'));for(const player of team.squad)player.photo=photos[player.name]||null;}catch{}
 const empty = process.argv.includes('--empty');

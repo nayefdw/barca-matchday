@@ -29,8 +29,9 @@ export function normalizeMatches(payload, previous, checkedAt, teamId = 81) {
     };
     // Keep the last confirmed calendar time as a cancellation tombstone.
     fixture.calendarStart = fixture.timeConfirmed ? fixture.kickoffUtc : before?.calendarStart || null;
+    fixture.calendarDate = fixture.calendarStart ? null : fixture.status==='SCHEDULED' ? fixture.kickoffUtc.slice(0,10) : before?.calendarDate || (before?.status==='SCHEDULED'?before.kickoffUtc.slice(0,10):null);
     const signature = JSON.stringify({ home: fixture.homeTeam.name, away: fixture.awayTeam.name,
-      competition: fixture.competitionName, start: fixture.calendarStart, status: fixture.status, venue: fixture.venue, round: fixture.round });
+      competition: fixture.competitionName, start: fixture.calendarStart, date: fixture.calendarDate, status: fixture.status, venue: fixture.venue, round: fixture.round });
     fixture.calendarSignature = signature;
     fixture.sequence = before ? (before.sequence || 0) + (before.calendarSignature === signature ? 0 : 1) : 0;
     fixture.changedAt = before?.calendarSignature === signature ? before.changedAt : checkedAt;
@@ -46,7 +47,7 @@ export function normalizeMatches(payload, previous, checkedAt, teamId = 81) {
       // A missing fixture is not evidence of cancellation. Preserve the last
       // complete snapshot by rejecting an incomplete provider response.
       if (!['CANCELLED', 'POSTPONED'].includes(f.status)) throw new Error('Previously known fixture missing');
-      if (f.calendarStart) fixtures.push(f);
+      if (f.calendarStart || f.calendarDate) fixtures.push(f);
     }
   }
   return fixtures.sort((a, b) => Date.parse(a.kickoffUtc) - Date.parse(b.kickoffUtc));

@@ -27,7 +27,9 @@ test('API and calendar read the snapshot; neither performs a provider refresh', 
   assert.equal(payload.calendarReady,true);
   assert.equal(await env.FIXTURES.get('meta','json'),null);
   assert.equal((await handleRequest(new Request('https://example.test/calendar/barca.ics?competition=bad'),env)).status,400);
-  assert.equal((await handleRequest(new Request('https://example.test/calendar/match/fd-104.ics'),env)).status,409);
+  const pending=await handleRequest(new Request('https://example.test/calendar/match/fd-104.ics'),env);
+  assert.equal(pending.status,200);
+  assert.match(await pending.text(),/DTSTART;VALUE=DATE:/);
   assert.equal((await handleRequest(new Request('https://example.test/calendar/barca.ics?competition=CL'),env)).status,200);
   assert.equal((await handleRequest(new Request('http://localhost/api/fixtures'),env)).status,200);
   assert.equal((await (await handleRequest(new Request('http://localhost/api/fixtures'),env)).json()).calendarUrl,null);

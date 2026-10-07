@@ -31,7 +31,7 @@ export function safeVenue(value){
 }
 export function matchVenue(match,venues={}){
  const name=typeof match?.venue==='string'?match.venue.trim():'';
- if(name&&name.length<=180&&!/^(?:tbc|tbd|n\/a|unknown)$/i.test(name))return {name,confirmed:true,source:'match'};
+ if(name&&name.length<=180&&!/^(?:tbc|tbd|n\/a|unknown|venue to be confirmed)$/i.test(name))return {name,confirmed:true,source:'match'};
  const homeGround=safeVenue(venues[match?.homeTeam?.id]);
  return homeGround?{name:homeGround.name,confirmed:false,source:'club',note:'Club home ground · match venue not supplied'}:null;
 }

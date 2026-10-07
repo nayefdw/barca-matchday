@@ -1,4 +1,7 @@
+import {matchVenue} from '../public/stadiums.js';
 const encoder = new TextEncoder();
+// Update existing subscriptions when exported notes and venue metadata change.
+const EXPORT_REVISION=1, EXPORT_CHANGED_AT='2026-10-07T13:23:14Z';
 export const escapeText = value => String(value ?? '').replaceAll('\\', '\\\\').replace(/\r\n|\r|\n/g, '\\n').replaceAll(';', '\\;').replaceAll(',', '\\,');
 export function foldLine(line) {
   let lines = [], current = '', length = 0;
@@ -16,23 +19,26 @@ function stamp(value) {
   return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
 }
 export function calendarEligible(f) {
-  return Boolean(f.calendarStart && Number.isFinite(Date.parse(f.calendarStart)));
+  return Boolean(f.calendarStart && Number.isFinite(Date.parse(f.calendarStart)) || f.calendarDate && /^\d{4}-\d{2}-\d{2}$/.test(f.calendarDate) || f.status==='SCHEDULED' && Number.isFinite(Date.parse(f.kickoffUtc)));
 }
-export function createCalendar(snapshot, { competition = 'all', matchId = null } = {}) {
+export function createCalendar(snapshot, { competition = 'all', matchId = null, venues={} } = {}) {
   const fixtures = snapshot.fixtures.filter(f => (!matchId || f.id === matchId) && (competition === 'all' || f.competition === competition) && calendarEligible(f));
   const title = `Barça · ${competition === 'PD' ? 'La Liga' : competition === 'CL' ? 'Champions League' : 'Tracked fixtures'}`;
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Cartel//Barca Fixtures//EN', 'CALSCALE:GREGORIAN', `X-WR-CALNAME:${escapeText(title)}`, 'X-WR-TIMEZONE:Europe/Madrid', 'REFRESH-INTERVAL;VALUE=DURATION:PT6H', 'X-PUBLISHED-TTL:PT6H'];
   for (const f of fixtures) {
-    const cancelled = !f.timeConfirmed;
-    const description = [f.competitionName, f.round, cancelled ? (f.status === 'POSTPONED' ? 'Postponed; new kickoff TBC.' : f.status === 'CANCELLED' ? 'Cancelled.' : 'Kickoff no longer confirmed; awaiting a new time.') : '',
-      'La Liga and Champions League only. Cup fixtures are not included.',
-      'End time is a two-hour calendar placeholder, not a confirmed final whistle.',
-      'Football data provided by the Football-Data.org API'].filter(Boolean).join('\n');
-    lines.push('BEGIN:VEVENT', `UID:${f.id}@cartel-barca.fixtures`, `DTSTAMP:${stamp(f.changedAt || snapshot.checkedAt)}`,
-      `LAST-MODIFIED:${stamp(f.changedAt || snapshot.checkedAt)}`, `SEQUENCE:${f.sequence || 0}`,
-      `DTSTART:${stamp(f.calendarStart)}`, `DTEND:${stamp(Date.parse(f.calendarStart) + 2 * 3600000)}`,
+    const dateOnly=!f.calendarStart, cancelled=!f.timeConfirmed&&(!dateOnly||f.status!=='SCHEDULED');
+    const description = [f.competitionName, f.round, cancelled?(f.status==='POSTPONED'?'Postponed':f.status==='CANCELLED'?'Cancelled':'Kickoff no longer confirmed'):dateOnly?'Kickoff time pending':''].filter(Boolean).join(' · ');
+    const changed=Math.max(Date.parse(f.changedAt || snapshot.checkedAt),Date.parse(EXPORT_CHANGED_AT));
+    const location=matchVenue(f,venues)?.name;
+    const day=f.calendarDate||f.kickoffUtc.slice(0,10);
+    const dates=dateOnly?[
+      `DTSTART;VALUE=DATE:${day.replaceAll('-','')}`,
+      `DTEND;VALUE=DATE:${new Date(Date.parse(day+'T00:00:00Z')+86400000).toISOString().slice(0,10).replaceAll('-','')}`
+    ]:[`DTSTART:${stamp(f.calendarStart)}`,`DTEND:${stamp(Date.parse(f.calendarStart)+2*3600000)}`];
+    lines.push('BEGIN:VEVENT', `UID:${f.id}@cartel-barca.fixtures`, `DTSTAMP:${stamp(changed)}`,
+      `LAST-MODIFIED:${stamp(changed)}`, `SEQUENCE:${(f.sequence || 0)+EXPORT_REVISION}`, ...dates,
       `SUMMARY:${escapeText(`${f.homeTeam.name} vs ${f.awayTeam.name}`)}`, `DESCRIPTION:${escapeText(description)}`,
-      `LOCATION:${escapeText(f.venue || 'Venue to be confirmed')}`, `STATUS:${cancelled ? 'CANCELLED' : 'CONFIRMED'}`, 'TRANSP:TRANSPARENT', 'END:VEVENT');
+      ...(location?[`LOCATION:${escapeText(location)}`]:[]), `STATUS:${cancelled?'CANCELLED':dateOnly?'TENTATIVE':'CONFIRMED'}`, 'TRANSP:TRANSPARENT', 'END:VEVENT');
   }
   lines.push('END:VCALENDAR');
   return lines.map(foldLine).join('\r\n') + '\r\n';

@@ -5,6 +5,7 @@ import { refresh, refreshInterval } from './refresh.js';
 import { refreshTeam } from './team.js';
 import { refreshStandings, TABLE_COMPETITIONS } from './standings.js';
 import {pushRequest,sendReminders} from './push.js';
+import {officialVenue} from './match-venues.js';
 export async function handleRequest(request, env) {
   const url = new URL(request.url);
   if(url.pathname.startsWith('/api/push/'))return pushRequest(request,env);
@@ -28,8 +29,9 @@ export async function handleRequest(request, env) {
     return new Response(request.method==='HEAD'?null:JSON.stringify(payload),{headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
   }
   if (url.pathname === '/api/fixtures' || url.pathname.startsWith('/calendar/')) {
-    const snapshot = await env.FIXTURES?.get('snapshot', 'json');
+    let snapshot = await env.FIXTURES?.get('snapshot', 'json');
     if (!snapshot) return new Response(url.pathname.startsWith('/calendar/') ? 'Calendar is not ready yet.' : JSON.stringify({ error: 'Fixture data is not available yet.' }), { status: 503, headers: { 'Content-Type': url.pathname.startsWith('/calendar/') ? 'text/plain' : 'application/json', 'Cache-Control': 'no-store', 'Retry-After': '3600' } });
+    if(!snapshot.demo)snapshot={...snapshot,fixtures:snapshot.fixtures.map(officialVenue)};
     const meta = await env.FIXTURES.get('meta', 'json') || {};
     if (url.pathname.startsWith('/calendar/')) {
       if (snapshot.demo) return new Response('Demo fixtures cannot be subscribed to.', { status: 503 });
@@ -37,7 +39,8 @@ export async function handleRequest(request, env) {
       if (!['all', 'PD', 'CL'].includes(competition)) return new Response('Unknown competition', { status: 400 });
       const match = /^\/calendar\/match\/([a-zA-Z0-9-]+)\.ics$/.exec(url.pathname);
       if (url.pathname !== '/calendar/barca.ics' && !match) return new Response('Not found', { status: 404 });
-      return calendarResponse(request, snapshot, { competition, matchId: match?.[1] });
+      const stadiums=await env.FIXTURES.get('stadiums','json');
+      return calendarResponse(request, snapshot, { competition, matchId: match?.[1], venues:stadiums?.venues||{} });
     }
     const origin = env.SITE_ORIGIN || url.origin;
     let calendarUrl = null;

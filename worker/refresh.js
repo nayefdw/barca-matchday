@@ -1,5 +1,6 @@
 import { normalizeMatches, COVERAGE } from './normalize.js';
 export function refreshInterval(snapshot, now) {
+  if(snapshot?.fixtures.some(f=>['IN_PLAY','PAUSED','SUSPENDED'].includes(f.status)||f.status==='TIMED'&&Date.parse(f.kickoffUtc)<=now&&now-Date.parse(f.kickoffUtc)<3*3600000))return 300000;
   return snapshot?.fixtures.some(f => !['FINISHED', 'CANCELLED', 'AWARDED'].includes(f.status) && f.timeConfirmed && Math.abs(Date.parse(f.kickoffUtc) - now) < 24 * 3600000) ? 3600000 : 6 * 3600000;
 }
 export async function refresh(env, { now = Date.now(), fetcher = fetch } = {}) {

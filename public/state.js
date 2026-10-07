@@ -10,7 +10,7 @@ export function currentMatch(fixtures, now = Date.now()) {
 export function stateLabel(f, now = Date.now()) {
   const labels = { POSTPONED: 'Postponed · new time TBC', CANCELLED: 'Cancelled', SUSPENDED: 'Suspended · delayed status', IN_PLAY: 'In progress · delayed status', PAUSED: 'Half-time · delayed status', FINISHED: 'Full time', AWARDED: 'Awarded result' };
   if (labels[f.status]) return labels[f.status];
-  if (!f.timeConfirmed) return 'Date / time to be confirmed';
+  if (!f.timeConfirmed) return 'Kickoff time to be confirmed';
   if (Date.parse(f.kickoffUtc) <= now) return 'Scheduled start passed · status unavailable';
   return 'Kickoff confirmed';
 }

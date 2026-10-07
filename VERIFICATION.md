@@ -1,5 +1,17 @@
 # Verification · 7 October 2026
 
+## Version 2.5.0
+
+68 automated checks pass. Added checks cover countdown seconds and unit boundaries, provider-confirmed LIVE/half-time states, unknown scores, 12/24-hour formatting, five-minute match refreshes, exact-match venue corrections, date-only fixture timezone handling, concise calendar notes and location fallback. Calendar tests verify stable UIDs through date changes, conversion to timed events and cancellation/postponement of an all-day entry. Existing push, roster, history, tables, photo, offline and calendar escaping/ETag checks pass.
+
+Published Worker version: `d10a43bf-1f93-4e53-bef2-6bd5cff13392`. Public HTTP verification confirmed 42 real fixtures, 42 calendar events including 27 with pending kickoff times, Spotify Camp Nou for Getafe and La Cartuja for Betis, brief descriptions with no placeholder venue text, conditional 304 responses, HEAD support and the new cached shell. Existing data remains 20 La Liga clubs, 36 Champions League clubs, 28 roster players, 24 portraits, five recent Getafe meetings and a ready push configuration. On the published app, Refresh saved fixtures returned a timestamped success message. Match polling retries after a temporary offline response.
+
+Browser verification at 390 × 844 showed a seconds countdown and uppercase AM/PM after selecting the 12-hour setting. The preference survived reload. November shows all five published fixtures, including Atlético on the 8th, Villarreal on the 22nd and Deportivo on the 29th with only their kickoff time pending; the month summary includes all five. The clearly marked local live preview shows LIVE, delayed-score wording and 2–1 without inventing a production match; it has no horizontal overflow at 390 or 320 pixels. Real live match delivery and Apple subscription updates have not been tested on an iPhone.
+
+Calendar notes are changed; the subscription window and its instructions remain. Settings provides the official Barça schedule/calendar link for cup coverage, since Copa del Rey is absent from the current free fixture provider. November’s dates are published rather than asserted final; the official site still labels some dates/times subject to announcement.
+
+Prior release verification follows.
+
 **56 automated checks passed for version 2.3.1.** The original publication passed 45 checks; the prior verification history below is retained. All JavaScript files passed syntax checks on Node 24. No live football-data.org credentials were used in the tests. Public Wikipedia/Wikimedia metadata was fetched to source and credit player photos.
 
 Calendar checks cover a changed kickoff preserving its UID, increasing revisions, cancellation/postponement/loss of confirmation at the original event time, reconfirmation, unconfirmed fixture omission, competition/single-event selection, UTC dates, UTF-8 line folding, escaping, ETags, HEAD and missing-event errors.

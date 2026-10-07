@@ -30,8 +30,8 @@ export function monthCalendar(fixtures, {year,month,timeZone,competition='all',n
   const prefix = `${year}-${String(month).padStart(2,'0')}`;
   const byDate = new Map();
   for (const f of fixtures) {
-    if (!f.timeConfirmed || ['POSTPONED','CANCELLED'].includes(f.status) || (competition!=='all'&&f.competition!==competition)) continue;
-    const key = dateKey(f.kickoffUtc,timeZone);
+    if ((!f.timeConfirmed&&f.status!=='SCHEDULED') || ['POSTPONED','CANCELLED'].includes(f.status) || (competition!=='all'&&f.competition!==competition)) continue;
+    const key = fixtureDateKey(f,timeZone);
     if (!key.startsWith(prefix+'-')) continue;
     if (!byDate.has(key)) byDate.set(key,[]);
     byDate.get(key).push(f);
@@ -45,6 +45,9 @@ export function monthCalendar(fixtures, {year,month,timeZone,competition='all',n
       return { key,day:index+1,today:key===today,fixtures:(byDate.get(key)||[]).sort((a,b)=>Date.parse(a.kickoffUtc)-Date.parse(b.kickoffUtc)) };
     })
   };
+}
+export function fixtureDateKey(f,timeZone){
+ return f.timeConfirmed?dateKey(f.kickoffUtc,timeZone):f.kickoffUtc.slice(0,10);
 }
 export function searchFixtures(fixtures, query) {
   const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();

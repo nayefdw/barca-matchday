@@ -10,16 +10,20 @@ test('form uses Barcelona’s result at home and away, and excludes incomplete s
  assert.equal(matchResult(fixture({status:'FINISHED'})),null);
  assert.deepEqual(recentForm([away,fixture(),home]).map(f=>f.outcome),['W','L']);
 });
-test('the calendar puts fixtures on the device timezone’s day, omitting unconfirmed and cancelled matches',()=>{
+test('the calendar uses local kickoff days, published date-only days and excludes cancelled matches',()=>{
  const late=fixture({kickoffUtc:'2026-10-10T23:30:00Z'});
  const tbc=fixture({id:'tbc',status:'SCHEDULED',timeConfirmed:false});
  const cancelled=fixture({id:'cancelled',status:'CANCELLED',timeConfirmed:false});
  const cl=fixture({id:'cl',competition:'CL'});
  const madrid=monthCalendar([late,tbc,cancelled,cl],{year:2026,month:10,timeZone:'Europe/Madrid',competition:'PD'});
- assert.equal(madrid.days[10].fixtures[0].id,'one');assert.equal(madrid.days[9].fixtures.length,0);
+ assert.equal(madrid.days[10].fixtures[0].id,'one');assert.equal(madrid.days[9].fixtures[0].id,'tbc');
  const newYork=monthCalendar([late],{year:2026,month:10,timeZone:'America/New_York'});
  assert.equal(newYork.days[9].fixtures.length,1);
  assert.equal(madrid.offset,3);
+ const pending=fixture({kickoffUtc:'2026-11-08T00:00:00Z',status:'SCHEDULED',timeConfirmed:false});
+ const west=monthCalendar([pending],{year:2026,month:11,timeZone:'America/Los_Angeles'});
+ assert.equal(west.days[7].fixtures[0].id,'one');
+ assert.equal(west.days[6].fixtures.length,0);
 });
 test('leap years, December navigation and DST fallback are handled consistently',()=>{
  assert.equal(monthCalendar([],{year:2028,month:2,timeZone:'UTC'}).days.length,29);
