@@ -1,5 +1,13 @@
 # Verification · 7 October 2026
 
+## Version 2.5.4
+
+Added four masked fixed blur layers (2px, 5px, 10px and 18px) and a gradual page-background fade beneath the bottom navigation. The decorative wrapper is inert, aria-hidden and pointer-transparent at z-index 4; the sharp navigation stays above it at z-index 5. Its height includes the bottom safe area and its width follows the app's 480px maximum. Reduced-transparency preferences disable backdrop blur, with the gradient retained. No backend logic or fixture data changed.
+
+Published Worker version: `b0305a5e-12d2-472b-9189-4923fa82e61a`. Cloudflare build/deployment and the app.js syntax check succeeded. Published-browser verification showed version 2.5.4, all four parsed masks/blur levels, and a fixed fade top at 700px in a 390 × 844 viewport after scrolling 740px. All four navigation centres hit their matching links and their labels retain opacity 1. At 320 × 740, the fade top is 596px and client/scroll width both measure 305px; all four links remain clickable. The native match dialog remains above the fade, with no text filter and matching client/scroll width of 288px. The fixture-list screenshot shows the next month heading gradually disappearing while the menu stays clear. The original glass-off preference and viewport were restored after verification.
+
+The local preview could not be reached, so browser verification used the published app. Existing automated checks were last run for version 2.5.3; this CSS appearance change was verified visually without rerunning that suite. Actual iPhone/Safari rendering was not physically tested.
+
 ## Version 2.5.3
 
 All 72 existing automated checks pass and app.js passes its syntax check. The glass bar removes the dark backing and reduces the default blur to the countdown's 5px, with a separate saved Clarity slider. Defaults are 95% transparency and 75% clarity. The old 65% default upgrades to 95%; custom values are retained. No fixture/backend data changes are included.

@@ -2,7 +2,7 @@
 
 A lightweight mobile-first PWA: a stadium match card, searchable fixtures and results, a monthly calendar, News / Squad / Stats sections, and an iPhone calendar subscription. Plain HTML, CSS and JavaScript; Cloudflare Worker + KV backend.
 
-## Design and features · version 2.5.3
+## Design and features · version 2.5.4
 
 - A blended translucent header with an original blue/red monogram, Barça / Matchday branding, and no Cartel word in the banner. Floating glass cards, soft blue/garnet lighting, blue/red active-tab accents and a floating bottom navigation bar.
 - Home: next match with full club names and real crests, prominent kickoff, glass days/hours/minutes/seconds countdown, LIVE/half-time status and the latest delayed score, Previous / Then / After fixture strip, recent form and match sharing. Sharing uses the device share sheet or copy fallback; a public real-data deployment includes a match link.
@@ -19,6 +19,7 @@ A lightweight mobile-first PWA: a stadium match card, searchable fixtures and re
 - Settings: opt-in match reminders at 15/30 minutes, 1/2 hours or 1 day before confirmed kickoff. Preference changes save on the device; enabling delivery requires the public deployment and push keys. The preview does not request notification permission or send sample reminders.
 - Settings: Refresh saved fixtures shows progress, a completion time on success and a clear message when the server cannot be reached. It reloads the latest saved server snapshot; provider polling stays on the scheduled cadence.
 - Settings: Bottom bar has an optional Liquid Glass switch and separate 0–100% transparency and clarity sliders in 5% steps. Transparency controls the light surface tint; clarity reduces backdrop blur from 20px to 0px. Changes preview immediately, with icons and labels kept opaque. Preferences are saved on the device; the classic bar remains the default.
+- Page content gradually blurs and fades beneath the bottom navigation. Four masked blur layers increase toward the bottom edge, while the menu remains sharp and clickable. The fixed fade follows the app width and iPhone safe area; its decorative layers do not intercept taps or scrolling. Reduced-transparency preferences disable the blur, and the gradient remains available as a fallback.
 
 Home artwork uses the nine photographs supplied by the user, compressed to WebP (about 1.3 MB total); the original wording/watermark in the sunset photo is retained. Away artwork is sourced with photographer, licence and file links from Wikimedia Commons. Unknown grounds use the SVG stadium illustration. Photographs are historical and do not establish the current match venue. Explicit fixture venue text takes priority; when it is omitted, the separately fetched club ground is shown without an added suffix, with a note in match details that a venue change remains possible. The official schedule supplies guarded venue corrections for the checked October/November 2026 fixtures, including RAMS Park and La Cartuja; they require an exact fixture ID, date and teams and never override an explicit provider venue. Stadium photos are not treated as venue confirmation. The prior generated background is retained as an unused design archive; see [the asset prompt](ASSET-PROMPT.md). The News card retains its credited historical photo.
 
@@ -33,6 +34,12 @@ npm test
 ```
 
 The preview uses clearly labelled **illustrative fixtures**, anchored to the day it starts. It is not the real Barcelona schedule. Calendar subscriptions and single-event exports are disabled for sample data. `node dev/server.js --empty` previews the initial state with no data connected. `node dev/server.js --live-preview` displays an explicitly illustrative 2–1 live poster; this never touches production data.
+
+## Release 2.5.4
+
+Added a progressive blur and background fade beneath the floating bottom menu. This page-content effect is separate from the bar's existing glass transparency and clarity controls. It uses small fixed CSS layers without a scroll listener or animation, and leaves dialog content above the effect. The shell cache is updated for installed apps; fixture data and backend behavior are unchanged.
+
+Published-browser checks confirmed the fixed fade during scrolling, increasing masked blur, all four menu hit targets and no horizontal overflow at 390px and 320px. Match details remain clear and fit the narrow viewport. The JavaScript syntax check and Cloudflare deployment succeeded. Actual iPhone/Safari rendering remains a device check.
 
 ## Release 2.5.3
 

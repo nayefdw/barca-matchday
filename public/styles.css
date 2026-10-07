@@ -598,3 +598,47 @@ html,body { overscroll-behavior-y: none; }
 .bar-transparency-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; border: 3px solid #dceaff; background: #304468; box-shadow: 0 3px 8px #0005; }
 .bar-transparency-slider:disabled { opacity: .35; cursor: default; }
 .bar-range-ends { display: flex; justify-content: space-between; color: #92a6c3; font-size: 9px; margin-top: -3px; }
+
+/* Scroll content dissolves below the navigation; its controls stay sharp. */
+.nav-content-fade {
+  position: fixed;
+  z-index: 4;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(100%,480px);
+  height: calc(144px + env(safe-area-inset-bottom));
+  pointer-events: none;
+  user-select: none;
+}
+.nav-content-fade>span { position: absolute; inset: 0; pointer-events: none; }
+.nav-content-fade>span:nth-child(1) {
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+  mask-image: linear-gradient(to bottom,transparent,#000 45%);
+  -webkit-mask-image: linear-gradient(to bottom,transparent,#000 45%);
+}
+.nav-content-fade>span:nth-child(2) {
+  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  mask-image: linear-gradient(to bottom,transparent 20%,#000 65%);
+  -webkit-mask-image: linear-gradient(to bottom,transparent 20%,#000 65%);
+}
+.nav-content-fade>span:nth-child(3) {
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  mask-image: linear-gradient(to bottom,transparent 40%,#000 82%);
+  -webkit-mask-image: linear-gradient(to bottom,transparent 40%,#000 82%);
+}
+.nav-content-fade>span:nth-child(4) {
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  mask-image: linear-gradient(to bottom,transparent 60%,#000);
+  -webkit-mask-image: linear-gradient(to bottom,transparent 60%,#000);
+}
+.nav-content-fade::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,#080e2000,#080e2014 30%,#080e2059 55%,#080e20bf 80%,var(--navy));
+  pointer-events: none;
+}
+@media(prefers-reduced-transparency:reduce) {
+  .nav-content-fade>span { backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
