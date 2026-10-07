@@ -1,5 +1,6 @@
 import { clubTeam } from '../public/teams.js';
 import { enrichPlayerPhotos } from './photos.js';
+import { enrichPlayerProfiles } from './player-profiles.js';
 export function normalizeTeam(payload, checkedAt, teamId = 81) {
   if (payload.id !== teamId || typeof payload.name !== 'string' || !Array.isArray(payload.squad) || payload.squad.length > 150) throw new Error('Invalid team response');
   const squad = payload.squad.map(p => {
@@ -26,7 +27,8 @@ export async function refreshTeam(env,{now=Date.now(),fetcher=fetch}={}) {
     if (!response.ok) throw new Error(`Team provider returned ${response.status}`);
     const normalized=normalizeTeam(await response.json(),at,teamId);
     const previous=await env.FIXTURES.get('team_snapshot','json');
-    const snapshot=await enrichPlayerPhotos(normalized,previous,{fetcher});
+    const photographed=await enrichPlayerPhotos(normalized,previous,{fetcher});
+    const snapshot=await enrichPlayerProfiles(photographed,previous,{fetcher,now});
     await env.FIXTURES.put('team_snapshot',JSON.stringify(snapshot));
     await env.FIXTURES.put('team_meta',JSON.stringify({lastAttemptAt:at,lastSuccessAt:at,failures:0}));
     return {updated:snapshot.squad.length};

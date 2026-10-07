@@ -1,5 +1,25 @@
 {
-  "id": "/", "name": "Cartel · Barça fixtures", "short_name": "Cartel", "lang": "en",
-  "start_url": "/", "scope": "/", "display": "standalone", "background_color": "#071327", "theme_color": "#071327",
-  "icons": [{"src":"/icons/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"/icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]
+  "id": "/",
+  "name": "Barça Matchday",
+  "short_name": "Barça",
+  "lang": "en",
+  "start_url": "/#match",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#071327",
+  "theme_color": "#071327",
+  "icons": [
+    {
+      "src": "/icons/icon-v24-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-v24-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }

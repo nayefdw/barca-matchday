@@ -2,7 +2,7 @@
 
 A lightweight mobile-first PWA: a stadium match card, searchable fixtures and results, a monthly calendar, News / Squad / Stats sections, and an iPhone calendar subscription. Plain HTML, CSS and JavaScript; Cloudflare Worker + KV backend.
 
-## Design and features · version 2.3.1
+## Design and features · version 2.4.0
 
 - A blended translucent header with an original blue/red monogram, Barça / Matchday branding, and no Cartel word in the banner. Floating glass cards, soft blue/garnet lighting, blue/red active-tab accents and a floating bottom navigation bar.
 - Home: next match with full club names and real crests, prominent kickoff, single glass countdown, Previous / Then / After fixture strip, recent form and match sharing. Sharing uses the device share sheet or copy fallback; a public real-data deployment includes a match link.
@@ -163,3 +163,11 @@ Wikipedia/Wikimedia is a possible later crest fallback; a Wikipedia article thum
 News atmosphere photo: [Campnoupano2011.jpg](https://commons.wikimedia.org/wiki/File:Campnoupano2011.jpg), Jackpollock, public domain. Player thumbnails use the [PageImages API](https://www.mediawiki.org/wiki/API:Pageimages) with `pilicense=free`; artist/required attribution and licence are read from Wikimedia file metadata. `dev/photo-sample.json` stores preview metadata and source links, without downloading the images. Thumbnail hosts include `thumb.wikimedia.org` and `upload.wikimedia.org`. Photos are displayed cropped to fit; individual credits appear in player profiles. Player shirt fallback illustrations are original SVG artwork. News links: [first-team news](https://www.fcbarcelona.com/en/football/first-team/news), [club news](https://www.fcbarcelona.com/en/club/news), [results](https://www.fcbarcelona.com/en/football/first-team/results).
 
 The owner approved publication. The private GitHub repository contains the source, and the public Cloudflare Worker serves the app, calendar feed and read-only football data APIs. Device testing of native sharing, Apple Calendar refresh and actual iPhone push delivery remains outstanding.
+
+## Version 2.4.0
+
+Match detail crests and names share the same equal-width grid columns, including narrow phones. The nearby cards place the opponent name below its crest and the score below the name; upcoming cards use the same space for kickoff time. The venue label displays the name alone, with any provider-coverage caveat in the details. Fresh loads and installed-app resumes open Home; shared match query links still open their details. The header is fixed below the iPhone safe area. Its refresh icon is replaced by a resisted pull-to-refresh indicator; a deliberate downward pull at the top refreshes on release, while sideways gestures, modal pulls and duplicate requests are ignored. The Settings refresh remains available.
+
+Player profiles show Wikipedia biography facts (birth date, birthplace, height, position) and source links. The 7 October refresh resolved 27 biographies and 26 Barcelona shirt numbers; Jesse Bisiwu's Barcelona B number is labelled with that club, and Iker Rodríguez's unavailable number remains unknown. Numbers from another club never become Barcelona first-team numbers. Saved profiles survive source failures and refresh alongside the daily roster.
+
+Home Screen icons now use the Barcelona crest from football-data.org on a blue/red background. Versioned PNG/SVG paths avoid old asset caches, the manifest is named Barça Matchday and starts at /#match. Existing iOS Home Screen icons can remain cached until added again from Safari. This remains an independent fan companion; the crest is a club trademark.
