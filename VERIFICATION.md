@@ -1,5 +1,13 @@
 # Verification · 7 October 2026
 
+## Version 2.5.2
+
+All 72 existing automated checks pass, and app.js passes the JavaScript syntax check. This release adds an optional Liquid Glass bottom navigation appearance with a 0–100% transparency slider in 5% steps, live preview and local device preferences. The classic appearance is the default. No backend or fixture-data changes are included.
+
+Local browser checks confirmed 0% produces a solid surface, 100% removes its colour layers, and navigation labels retain opacity 1 at both limits. The checked switch and 80% preference survived a reload. Switching off restored the classic surface and disabled the slider while keeping the percentage. Layouts at 390 × 844 and 320 × 740 had no horizontal page overflow; the glass switch, slider and menu remained readable. Safari/iPhone rendering has not been physically tested.
+
+Published Worker version: `f87d1c1e-4f27-4e43-9360-4424524df1b7`. The public browser displayed version 2.5.2, the new switch and slider, and retained Liquid Glass with 65% transparency after reload. The browser preference was restored to the classic default after verification.
+
 ## Version 2.5.1
 
 72 automated checks pass. New timezone checks launch the runtime in Chicago, Gaza and Kolkata to confirm automatic detection, accept the legacy Calcutta alias, preserve a manual zone against a different phone zone, migrate the old Barcelona preference and fall back safely from invalid preferences. Time conversions verify Chicago winter/summer offsets and the spring clock jump, Gaza/Hebron winter/summer offsets and fixture dates across midnight. Date-only fixtures retain their published date.
