@@ -1,5 +1,11 @@
 # Verification · 8 October 2026
 
+## Version 2.5.6 · 8 October 2026
+
+Published Worker version: `9b381e9f-11e4-46bd-82b2-4eb1c9ae8b83`. Eight existing pull-to-refresh and startup cache checks pass. The live browser initially used the previous installed screen, then adopted the new fixed-scale viewport on its next reload.
+
+Fixed-scale viewport and root/dialog touch-action allow panning but omit pinch zoom. Non-passive gesturestart/gesturechange and multi-touch touchmove guards cover iPhone Safari. Runtime verification exercised the actual guard handlers: gesture events and two/three-finger movements are cancelled; one-finger movement remains available. App and service-worker syntax checks pass. Physical iPhone pinch behavior has not been tested.
+
 ## Version 2.5.5 · 8 October 2026
 
 Published Worker version: `db305532-2eb6-4608-a4aa-6a20b14b287c`. Public index.html, app.js and sw.js hashes match the tested local source. The live browser opens the saved fixture poster correctly and Settings confirms version 2.5.5. This online reload constructed the first screen in 903.8ms; the controlled delayed-network comparison below is a separate test.
