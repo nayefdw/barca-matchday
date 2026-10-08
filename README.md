@@ -2,7 +2,7 @@
 
 A lightweight mobile-first PWA: a stadium match card, searchable fixtures and results, a monthly calendar, News / Squad / Stats sections, and an iPhone calendar subscription. Plain HTML, CSS and JavaScript; Cloudflare Worker + KV backend.
 
-## Design and features · version 2.5.4
+## Design and features · version 2.5.5
 
 - A blended translucent header with an original blue/red monogram, Barça / Matchday branding, and no Cartel word in the banner. Floating glass cards, soft blue/garnet lighting, blue/red active-tab accents and a floating bottom navigation bar.
 - Home: next match with full club names and real crests, prominent kickoff, glass days/hours/minutes/seconds countdown, LIVE/half-time status and the latest delayed score, Previous / Then / After fixture strip, recent form and match sharing. Sharing uses the device share sheet or copy fallback; a public real-data deployment includes a match link.
@@ -34,6 +34,12 @@ npm test
 ```
 
 The preview uses clearly labelled **illustrative fixtures**, anchored to the day it starts. It is not the real Barcelona schedule. Calendar subscriptions and single-event exports are disabled for sample data. `node dev/server.js --empty` previews the initial state with no data connected. `node dev/server.js --live-preview` displays an explicitly illustrative 2–1 live poster; this never touches production data.
+
+## Release 2.5.5
+
+Saved screen files now open directly from the installed service-worker cache rather than waiting for the network on every launch. Browser update checks install the next complete version in the background; fixture refreshes remain live network reads. Saved fixtures draw before photo storage and stadium requests begin. Poster photographs use a separate cache, retain earlier downloads when storage permits and cache as viewed, so nine optional photos no longer delay installation of the screen files. Photo preferences and added images are still loaded from their existing local store.
+
+All 78 automated checks pass, including stalled-network startup, query-string navigation, version isolation, uncached-file recovery, private/API/calendar exclusions and existing-photo migration. A controlled browser comparison used the same UI with old versus new service-worker loading policies, fresh tabs, saved sample fixtures and a 3.5-second delay on every preview response. First screen construction improved from 17,818ms to 273ms. This measures the browser's first render, not iPhone OS wake-up or image completion; a physical iPhone has not been timed. Startup timing marks stay local and are never uploaded. Backend behavior is unchanged.
 
 ## Release 2.5.4
 

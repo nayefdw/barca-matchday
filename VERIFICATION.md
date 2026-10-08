@@ -1,4 +1,14 @@
-# Verification · 7 October 2026
+# Verification · 8 October 2026
+
+## Version 2.5.5 · 8 October 2026
+
+Published Worker version: `db305532-2eb6-4608-a4aa-6a20b14b287c`. Public index.html, app.js and sw.js hashes match the tested local source. The live browser opens the saved fixture poster correctly and Settings confirms version 2.5.5. This online reload constructed the first screen in 903.8ms; the controlled delayed-network comparison below is a separate test.
+
+78 automated checks passed, and app.js/sw.js syntax checks passed. Six new worker checks exercise cached navigation with a stalled connection, current-shell-only script caching with query strings, sensitive/API/calendar/write exclusions, cache-miss recovery, core installation and artwork/fixture retention. After making artwork migration tolerate cache-storage failure, the six worker checks passed again. Private routes and live fixture APIs retain their prior network behavior.
+
+Removed the top-level photo-library await. First render uses saved fixture data and the supplied photo fallback; stored photo preferences/custom blobs, fixture refresh and stadium refresh begin after the first frame. Photo controls distinguish preparation from an unavailable store. The shell cache is v17 and photographs use a persistent separate artwork cache. Only core screen assets block worker installation; photos cache when used. Versioned screen files are served immediately, while native worker update checks remain enabled with updateViaCache none.
+
+Controlled browser benchmark: identical current UI, separate origins using either the prior v15 loading policy or the updated worker, saved sample data, fresh tabs and a 3500ms delay on each server response. The first-render DOM mark measured 17,818.4ms with the old worker and 272.5ms with the new worker. This deliberately slow scenario isolates the network wait and does not establish a typical iPhone startup time. New navigation, poster, countdown and nearby cards rendered with the cached snapshot before the delayed refresh finished. Physical iPhone/Safari startup, OS wake-up and storage eviction were not measured.
 
 ## Version 2.5.4
 
