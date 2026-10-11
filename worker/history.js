@@ -1,6 +1,7 @@
 import {clubTeam} from '../public/teams.js';
 import {recentMeetings} from '../public/history.js';
 import {archivedMeetings,mergeHistory} from './history-archive.js';
+import {enrichmentRetryWait} from './retry.js';
 
 const opponentId = match => match.homeTeam.id===81?match.awayTeam.id:match.homeTeam.id;
 export function normalizeHistory(payload, match, checkedAt) {
@@ -39,7 +40,7 @@ export async function refreshHistory(env,{now=Date.now(),fetcher=fetch}={}) {
   const due=[];
   for(const match of candidates){
     const key='history_'+opponentId(match),meta=await env.FIXTURES.get(key+'_meta','json')||{};
-    const wait=meta.accessUnavailable?86400000:3600000;
+    const wait=enrichmentRetryWait(meta);
     if(meta.lastAttemptAt&&now-Date.parse(meta.lastAttemptAt)<wait || meta.lastSuccessAt&&now-Date.parse(meta.lastSuccessAt)<86400000)continue;
     due.push({match,key,meta});
   }
@@ -48,7 +49,6 @@ export async function refreshHistory(env,{now=Date.now(),fetcher=fetch}={}) {
   let attempted=0, updated=0;
   for (const {match,key,meta} of selected) {
     attempted++;const at=new Date(now).toISOString();
-    await env.FIXTURES.put(key+'_meta',JSON.stringify({...meta,lastAttemptAt:at}));
     try {
       const response=await fetcher(`https://api.football-data.org/v4/matches/${match.id.slice(3)}/head2head?limit=10`,{headers:{'X-Auth-Token':env.FOOTBALL_DATA_TOKEN},signal:AbortSignal.timeout(12000)});
       if(!response.ok){const error=new Error('History provider returned '+response.status);error.accessUnavailable=[403,404].includes(response.status);throw error;}

@@ -1,6 +1,7 @@
 import { clubTeam } from '../public/teams.js';
 import { enrichPlayerPhotos } from './photos.js';
 import { enrichPlayerProfiles } from './player-profiles.js';
+import { enrichmentRetryWait } from './retry.js';
 export function normalizeTeam(payload, checkedAt, teamId = 81) {
   if (payload.id !== teamId || typeof payload.name !== 'string' || !Array.isArray(payload.squad) || payload.squad.length > 150) throw new Error('Invalid team response');
   const squad = payload.squad.map(p => {
@@ -16,10 +17,9 @@ export function normalizeTeam(payload, checkedAt, teamId = 81) {
 export async function refreshTeam(env,{now=Date.now(),fetcher=fetch}={}) {
   if (!env.FIXTURES || !env.FOOTBALL_DATA_TOKEN) return {skipped:'not-configured'};
   const meta = await env.FIXTURES.get('team_meta','json') || {};
-  if (meta.lastAttemptAt && now-Date.parse(meta.lastAttemptAt)<3600000) return {skipped:'attempted-recently'};
+  if (meta.lastAttemptAt && now-Date.parse(meta.lastAttemptAt)<enrichmentRetryWait(meta)) return {skipped:'attempted-recently'};
   if (meta.lastSuccessAt && now-Date.parse(meta.lastSuccessAt)<24*3600000) return {skipped:'not-due'};
   const at = new Date(now).toISOString();
-  await env.FIXTURES.put('team_meta',JSON.stringify({...meta,lastAttemptAt:at}));
   try {
     const teamId=Number(env.TEAM_ID || 81);
     if (!Number.isInteger(teamId)||teamId<1) throw new Error('Invalid team configuration');

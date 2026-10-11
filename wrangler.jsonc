@@ -1,6 +1,6 @@
 {
   "name": "barca-matchday",
-  "main": "worker/index.js",
+  "main": "worker/entry.js",
   "compatibility_date": "2026-10-07",
   "assets": {
     "directory": "./public",
@@ -16,11 +16,9 @@
       "id": "2cc6993893f1442b9f3a6f7c4d358afe"
     }
   ],
-  "triggers": {
-    "crons": [
-      "*/5 * * * *"
-    ]
-  },
+  "durable_objects": {"bindings": [{"name": "MATCH_SCHEDULER", "class_name": "MatchScheduler"}]},
+  "migrations": [{"tag": "match-time-v1", "new_sqlite_classes": ["MatchScheduler"]}],
+  "triggers": {"crons": []},
   "vars": {
     "TEAM_ID": "81",
     "SITE_ORIGIN": "https://barca-matchday.nayefdw.workers.dev",

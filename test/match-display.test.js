@@ -26,7 +26,7 @@ test('12/24 hour formatting preserves the timezone and kickoff instant',()=>{
  assert.equal(clockFormat({month:'long'},'12').hourCycle,undefined);
  assert.equal(clockFormat({timeStyle:'short'},'12').hourCycle,'h12');
 });
-test('backend refreshes every five minutes during play and just after kickoff',()=>{
+test('legacy freshness thresholds distinguish live and finished provider data',()=>{
  const start=Date.parse(f.kickoffUtc);
  assert.equal(refreshInterval({fixtures:[f]},start-3600000),3600000);
  assert.equal(refreshInterval({fixtures:[f]},start+60000),300000);

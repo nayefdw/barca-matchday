@@ -1,4 +1,24 @@
-# Verification · 8 October 2026
+# Verification · 11 October 2026
+
+## Version 2.5.9 · 11 October 2026
+
+Published Worker version: `54a7a109-14c0-4d54-8cfe-b8b019ffa15b`. The v22 screen cache delivers the simplified notification handler. Install name metadata is preserved as requested.
+
+All 103 automated checks pass. Five new checks verify the remaining-time wording, title-only notification options, simplification of older queued payloads, distinct test wording and unchanged install metadata/identity. Existing encryption, authorization, exact scheduling, retry and deduplication tests pass. App, push module and service-worker syntax checks pass. No real notification was sent. The owner confirms the installed PWA already shows FC Barcelona as its sender label. Physical iPhone notification display has not been tested for this wording change.
+
+## Version 2.5.8 · 11 October 2026
+
+Published Worker version: `c448add0-18b0-4b07-87f1-f2f9cea756de`. All 98 Node checks passed, including exact timer planning, restart/deduplication, changed/cancelled fixtures, preference changes/disabling, provider outages, targeted push retries, expired endpoints, KV mirror failure, invalid push configuration and bounded empty-deployment initialization. App/service-worker syntax checks passed.
+
+Actual workerd integration used the tested production bundle with SQLite storage. It imported the two existing saved devices without sending them a message, retained the exact timer after disposal/restart, and automatically performed a synthetic pre-match update and encrypted push without the app or an external poll invoking it. All synthetic outgoing calls were intercepted locally. The two existing devices retain their 30-minute lead. The next saved reminder is 13 October 18:30 UTC / 19:30 Europe/London, with a fixture check at 18:20 UTC.
+
+Cloudflare confirms zero Cron schedules. Production bundle and public asset hashes match tested source; app, real fixture cache, squad, standings, stadiums, calendar and push configuration return HTTP 200. Unauthenticated device status/test calls return 401. Original secrets and KV binding are preserved. The real API reports match-times and an armed scheduler with its next update at 13 October 18:20 UTC. Browser Settings displays version 2.5.8 and this policy. No new phone permission was requested and no existing device preference was changed.
+
+## Version 2.5.7 · 11 October 2026
+
+Diagnosed the original missed reminder in workerd: Workers rejects `redirect:'error'`, so the old push code never reached Apple. After correcting it to `manual`, Apple returned 201 for the saved subscriptions, and the owner confirmed a real test arrived. The test was not a future match reminder. Apple acceptance does not guarantee immediate display on the phone.
+
+Cloudflare's prior 24-hour view showed 610 KV writes, 16.8k reads and 290 lists, while Worker errors and asset 4xx/5xx were zero. This confirmed high repeated usage, not the exact original warning text. Four stadium entries had 92–93 repeated failures. Metadata writes were consolidated, partial venues preserved and failed enrichment backed off. Constant checking has now been replaced by 2.5.8's exact alarms.
 
 ## Version 2.5.6 · 8 October 2026
 

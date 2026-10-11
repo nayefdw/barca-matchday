@@ -1,14 +1,13 @@
 import {refreshStadiums,stadiumResponse} from './stadiums.js';
 import {historyResponse,refreshHistory} from './history.js';
 import { calendarResponse, calendarEligible } from './calendar.js';
-import { refresh, refreshInterval } from './refresh.js';
-import { refreshTeam } from './team.js';
-import { refreshStandings, TABLE_COMPETITIONS } from './standings.js';
-import {pushRequest,sendReminders} from './push.js';
+import { refreshInterval } from './refresh.js';
+import { TABLE_COMPETITIONS } from './standings.js';
+import {pushRequest} from './push.js';
 import {officialVenue} from './match-venues.js';
 export async function handleRequest(request, env) {
   const url = new URL(request.url);
-  if(url.pathname.startsWith('/api/push/'))return pushRequest(request,env);
+  if(url.pathname.startsWith('/api/push/'))return env.MATCH_SCHEDULER?env.MATCH_SCHEDULER.getByName('barca-matchday').fetch(request):pushRequest(request,env);
   if (!['GET', 'HEAD'].includes(request.method)) return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, HEAD' } });
   if(url.pathname==='/api/stadiums')return stadiumResponse(request,env);
   if(url.pathname==='/api/head-to-head')return historyResponse(request,env);
@@ -46,13 +45,18 @@ export async function handleRequest(request, env) {
     let calendarUrl = null;
     try { const configured = new URL('/calendar/barca.ics', origin); if (configured.protocol === 'https:') calendarUrl = configured.href; } catch {}
     const interval = refreshInterval(snapshot, Date.now());
+    const schedule=env.MATCH_SCHEDULER?await (await env.MATCH_SCHEDULER.getByName('barca-matchday').fetch('https://scheduler/internal/schedule')).json():null;
     const payload = { ...snapshot, checkedAt: meta.lastSuccessAt || snapshot.checkedAt,
-      stale: Date.now() - Date.parse(meta.lastSuccessAt || snapshot.checkedAt) > interval * 2,
-      refreshFailed: Boolean(meta.failures), nextRefreshAt: new Date(Date.parse(meta.lastSuccessAt || snapshot.checkedAt) + interval).toISOString(),
+      stale: schedule?Boolean(meta.failures):Date.now() - Date.parse(meta.lastSuccessAt || snapshot.checkedAt) > interval * 2,
+      refreshFailed: Boolean(meta.failures), nextRefreshAt: schedule?schedule.nextUpdateAt:new Date(Date.parse(meta.lastSuccessAt || snapshot.checkedAt) + interval).toISOString(),
+      ...(schedule?{refreshPolicy:'match-times',schedulerActive:!!schedule.alarmAt}:{}),
       calendarUrl, calendarReady: !snapshot.demo && !!calendarUrl && snapshot.fixtures.some(calendarEligible) };
     return new Response(request.method === 'HEAD' ? null : JSON.stringify(payload), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
   }
   if (url.pathname.startsWith('/api/')) return new Response('Not found', { status: 404 });
   return env.ASSETS.fetch(request);
 }
-export default { fetch: handleRequest, async scheduled(event, env) { await refresh(env, { now:event.scheduledTime }); await sendReminders(env, { now:event.scheduledTime }); await refreshStandings(env, { now:event.scheduledTime }); await refreshTeam(env, { now:event.scheduledTime }); await refreshHistory(env, { now:event.scheduledTime }); await refreshStadiums(env, { now:event.scheduledTime }); } };
+// Old Cron invocations may still arrive briefly while removal propagates.
+// They intentionally perform no reads, writes, refreshes or push attempts.
+export async function runScheduled(){return {skipped:'match-time-scheduler'};}
+export default {fetch:handleRequest,scheduled:runScheduled};

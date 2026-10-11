@@ -40,7 +40,8 @@ test('reminders use confirmed kickoffs, respect lead time and revisions, and rem
  const fixture={id:'fd-1',status:'TIMED',timeConfirmed:true,kickoffUtc:new Date(now+30*60000).toISOString(),homeTeam:{name:'FC Barcelona'},awayTeam:{name:'Getafe CF'},competitionName:'La Liga'};
  const subscriber={subscription:value,leadMinutes:30,sent:{}};
  assert.equal(dueReminders([fixture,{...fixture,id:'fd-2',status:'POSTPONED'},{...fixture,id:'fd-3',timeConfirmed:false}],subscriber,now).length,1);
- assert.equal(dueReminders([fixture],subscriber,now+11*60000).length,0);
+ assert.equal(dueReminders([fixture],subscriber,now+11*60000).length,1);
+ assert.equal(dueReminders([fixture],subscriber,now+30*60000).length,0);
  await env.FIXTURES.put('snapshot',JSON.stringify({demo:false,checkedAt:new Date(now).toISOString(),fixtures:[fixture]}));await env.FIXTURES.put('push_sub_test',JSON.stringify(subscriber));
  assert.equal((await sendReminders(env,{now,fetcher:async()=>new Response('',{status:201})})).sent,1);
  assert.equal((await sendReminders(env,{now:now+5*60000,fetcher:async()=>{throw new Error('Duplicate')}})).sent,0);

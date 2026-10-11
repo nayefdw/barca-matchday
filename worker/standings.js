@@ -1,4 +1,5 @@
 import {clubTeam} from '../public/teams.js';
+import {enrichmentRetryWait} from './retry.js';
 export const TABLE_COMPETITIONS={PD:'La Liga',CL:'Champions League'};
 export function normalizeStandings(payload,competition,checkedAt){
  if(!TABLE_COMPETITIONS[competition]||payload.competition?.code!==competition||!Array.isArray(payload.standings))throw new Error('Invalid standings response');
@@ -23,8 +24,8 @@ export async function refreshStandings(env,{now=Date.now(),fetcher=fetch}={}){
  const results={};
  for(const code of Object.keys(TABLE_COMPETITIONS)){
    const key='standings_'+code,meta=await env.FIXTURES.get(key+'_meta','json')||{};
-   if(meta.lastAttemptAt&&now-Date.parse(meta.lastAttemptAt)<3600000||meta.lastSuccessAt&&now-Date.parse(meta.lastSuccessAt)<6*3600000){results[code]={skipped:'not-due'};continue;}
-   const at=new Date(now).toISOString();await env.FIXTURES.put(key+'_meta',JSON.stringify({...meta,lastAttemptAt:at}));
+   if(meta.lastAttemptAt&&now-Date.parse(meta.lastAttemptAt)<enrichmentRetryWait(meta)||meta.lastSuccessAt&&now-Date.parse(meta.lastSuccessAt)<6*3600000){results[code]={skipped:'not-due'};continue;}
+   const at=new Date(now).toISOString();
    try{const response=await fetcher(`https://api.football-data.org/v4/competitions/${code}/standings`,{headers:{'X-Auth-Token':env.FOOTBALL_DATA_TOKEN},signal:AbortSignal.timeout(12000)});if(!response.ok)throw new Error(`Standings provider returned ${response.status}`);const snapshot=normalizeStandings(await response.json(),code,at);await env.FIXTURES.put(key,JSON.stringify(snapshot));await env.FIXTURES.put(key+'_meta',JSON.stringify({lastAttemptAt:at,lastSuccessAt:at,failures:0}));results[code]={updated:true};}
    catch(error){await env.FIXTURES.put(key+'_meta',JSON.stringify({...meta,lastAttemptAt:at,failures:(meta.failures||0)+1,lastError:error.message}));results[code]={error:error.message};}
  }
