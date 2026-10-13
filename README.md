@@ -2,7 +2,7 @@
 
 A lightweight mobile-first PWA: a stadium match card, searchable fixtures and results, a monthly calendar, News / Squad / Stats sections, and an iPhone calendar subscription. Plain HTML, CSS and JavaScript; Cloudflare Worker + KV public cache and a SQLite-backed match-time scheduler.
 
-## Design and features · version 2.5.9
+## Design and features · version 2.6.0
 
 - A blended translucent header with an original blue/red monogram, Barça / Matchday branding, and no Cartel word in the banner. Floating glass cards, soft blue/garnet lighting, blue/red active-tab accents and a floating bottom navigation bar.
 - Home: next match with full club names and real crests, prominent kickoff, glass days/hours/minutes/seconds countdown, LIVE/half-time status and the latest delayed score, Previous / Then / After fixture strip, recent form and match sharing. Sharing uses the device share sheet or copy fallback; a public real-data deployment includes a match link.
@@ -34,6 +34,14 @@ npm test
 ```
 
 The preview uses clearly labelled **illustrative fixtures**, anchored to the day it starts. It is not the real Barcelona schedule. Calendar subscriptions and single-event exports are disabled for sample data. `node dev/server.js --empty` previews the initial state with no data connected. `node dev/server.js --live-preview` displays an explicitly illustrative 2–1 live poster; this never touches production data.
+
+## Release 2.6.0 · live updates and match summaries
+
+Finished and active matches replace the recent-meetings section with the current/final score, scorers and goal minutes (including penalties and own goals), and a home/away statistics list. Upcoming matches retain recent meetings. Details come from the public feed used by FC Barcelona's official match centre, matched against both clubs, home/away order, competition and kickoff. Ambiguous or unavailable records are not guessed. Only supplied statistics appear; missing values use a dash. Verified summaries persist locally and in the shared server cache.
+
+The existing durable match scheduler now checks the official feed once a minute from two minutes before a confirmed kickoff until full time, bounded to three hours after kickoff. One final detail check runs two minutes after the first verified full-time update. These checks do not depend on an open app and do not poll on idle days. Official-source failures back off while retaining verified data. Existing fixture/reminder checks stay scheduled around the match; push wording and device preferences are unchanged. The visible app reads the authoritative scheduler state after each planned check, avoiding the KV edge cache's extra delay; it pauses foreground reads while hidden. A recent final result stays on the home poster within six hours of kickoff.
+
+The summary uses the existing sheet styling, with inner scrolling, a normal-flow background lock and safe heading focus. Replacing live summary content does not replace the whole dialog or reset its scroll. All 115 automated checks pass. Browser verification used the official Getafe match: 3–0, three scorers and ten supplied statistics. Physical iPhone gestures and a real live match have not been observed for this release. The club's public feed is not a contracted API and its data can still arrive late; the app cannot guarantee second-by-second reporting. No paid plan or new data key was added.
 
 ## Release 2.5.9 · simple notification text
 

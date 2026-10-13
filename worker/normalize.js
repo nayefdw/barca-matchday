@@ -27,6 +27,14 @@ export function normalizeMatches(payload, previous, checkedAt, teamId = 81) {
         duration: m.score?.duration || 'REGULAR', penalties: m.score?.penalties || null },
       source: 'football-data.org', sourceUpdatedAt: m.lastUpdated || checkedAt
     };
+    if(before?.kickoffUtc===fixture.kickoffUtc){
+      fixture.summaryFinalAt=before.summaryFinalAt||null;
+      if(before.source==='FC Barcelona'&&['IN_PLAY','PAUSED','FINISHED'].includes(before.status)&&['TIMED','IN_PLAY','PAUSED'].includes(fixture.status)){
+        fixture.status=before.status;fixture.score=before.score;fixture.matchClock=before.matchClock;
+        fixture.source=before.source;fixture.sourceUpdatedAt=before.sourceUpdatedAt;
+        fixture.venue=fixture.venue||before.venue;
+      }
+    }
     // Keep the last confirmed calendar time as a cancellation tombstone.
     fixture.calendarStart = fixture.timeConfirmed ? fixture.kickoffUtc : before?.calendarStart || null;
     fixture.calendarDate = fixture.calendarStart ? null : fixture.status==='SCHEDULED' ? fixture.kickoffUtc.slice(0,10) : before?.calendarDate || (before?.status==='SCHEDULED'?before.kickoffUtc.slice(0,10):null);

@@ -1,4 +1,12 @@
-# Verification · 11 October 2026
+# Verification · 13 October 2026
+
+## Version 2.6.0 · 13 October 2026
+
+Published Worker version: `571512fc-cd1e-4403-9e04-f5593f2359e5`. Production app.js, sw.js, styles.css and the new match-summary.js hashes match tested source. The actual Cloudflare summary endpoint returns HTTP 200 with FC Barcelona as source, the 3–0 result, three scorers and ten statistics. The authoritative fixture API returns HTTP 200, match-time scheduling and an armed next update at 18:20 UTC on 13 October. The live browser adopts the new worker after reopening and displays the same final summary; at 390px, dialog client and scroll widths both measure 358px. Saved screenshots show the score/scorers and the scrolled statistics. A final regression confirms that known full-time status/score override older live summary data immediately while updated statistics load. No test push was sent and existing device preferences were not changed.
+
+115 automated checks pass. Added coverage verifies exact cross-source identity matching (including wrong opponent/order/date/competition and ambiguity), scorer minutes and own-goal attribution, zero/missing stats, final-state preservation, shared caching/backoff, safe summary rendering and authoritative live-state reads rather than stale KV. Scheduler tests exercise one-minute match checks, restart persistence, full-time stop/final recheck, absence of idle polling and bounded behavior on failure. Existing reminder authorization, encryption, retries and successful-delivery deduplication pass. App and Worker module syntax checks pass.
+
+The public official source mapped fd-564700 to club match 138352 and returned the 3–0 Getafe result, three scorers and ten statistics. The exact source link returned HTTP 200. Local browser verification showed a final summary rather than recent meetings, safe title focus without keyboard activation, internally scrolling statistics and restored normal page scrolling. At 320px, dialog client/scroll widths match at 288px; inner scrolling and closing retain the captured background position. 390px styling was inspected visually. Physical iPhone/Safari behavior and actual live-match delivery have not been tested.
 
 ## Version 2.5.9 · 11 October 2026
 

@@ -10,6 +10,12 @@ class KV {
   async put(key,value) { this.items.set(key,value); }
 }
 const now=Date.parse('2026-10-07T12:00:00Z');
+test('live fixture reads use authoritative scheduler state without a stale KV edge copy',async()=>{
+ const snapshot={...sampleSnapshot(now),demo:false,liveCheckedAt:new Date(now).toISOString()};snapshot.fixtures[0].status='IN_PLAY';snapshot.fixtures[0].score={home:2,away:1};
+ const env={SITE_ORIGIN:'https://example.test',FIXTURES:{get:async()=>{throw new Error('Must not use stale edge cache');}},MATCH_SCHEDULER:{getByName:name=>{assert.equal(name,'barca-matchday');return {fetch:async url=>{assert.equal(url,'https://scheduler/internal/fixtures');return Response.json({snapshot,meta:{},schedule:{alarmAt:new Date(now+60000).toISOString(),nextUpdateAt:new Date(now+60000).toISOString()}});}};}}};
+ const response=await handleRequest(new Request('https://example.test/api/fixtures'),env),data=await response.json();
+ assert.equal(response.status,200);assert.equal(data.fixtures[0].status,'IN_PLAY');assert.equal(data.fixtures[0].score.home,2);assert.equal(data.checkedAt,snapshot.liveCheckedAt);assert.equal(data.nextRefreshAt,new Date(now+60000).toISOString());
+});
 test('cold start and demo cannot publish misleading calendar fixtures', async () => {
   const env={FIXTURES:new KV()};
   assert.equal((await handleRequest(new Request('https://example.test/api/fixtures'),env)).status,503);

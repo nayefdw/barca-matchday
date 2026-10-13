@@ -5,10 +5,12 @@ import { refreshInterval } from './refresh.js';
 import { TABLE_COMPETITIONS } from './standings.js';
 import {pushRequest} from './push.js';
 import {officialVenue} from './match-venues.js';
+import {summaryResponse} from './match-summary.js';
 export async function handleRequest(request, env) {
   const url = new URL(request.url);
   if(url.pathname.startsWith('/api/push/'))return env.MATCH_SCHEDULER?env.MATCH_SCHEDULER.getByName('barca-matchday').fetch(request):pushRequest(request,env);
   if (!['GET', 'HEAD'].includes(request.method)) return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, HEAD' } });
+  if(url.pathname==='/api/match-summary')return env.MATCH_SCHEDULER?env.MATCH_SCHEDULER.getByName('barca-matchday').fetch(request):summaryResponse(request,env);
   if(url.pathname==='/api/stadiums')return stadiumResponse(request,env);
   if(url.pathname==='/api/head-to-head')return historyResponse(request,env);
   if(url.pathname==='/api/standings'){
@@ -28,10 +30,15 @@ export async function handleRequest(request, env) {
     return new Response(request.method==='HEAD'?null:JSON.stringify(payload),{headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
   }
   if (url.pathname === '/api/fixtures' || url.pathname.startsWith('/calendar/')) {
-    let snapshot = await env.FIXTURES?.get('snapshot', 'json');
+    let authoritative=null,authoritativeFailed=false;
+    if(url.pathname==='/api/fixtures'&&env.MATCH_SCHEDULER)try{
+      const response=await env.MATCH_SCHEDULER.getByName('barca-matchday').fetch('https://scheduler/internal/fixtures');
+      if(!response.ok)throw new Error('Match scheduler unavailable');authoritative=await response.json();
+    }catch{authoritativeFailed=true;}
+    let snapshot = authoritative?.snapshot||await env.FIXTURES?.get('snapshot', 'json');
     if (!snapshot) return new Response(url.pathname.startsWith('/calendar/') ? 'Calendar is not ready yet.' : JSON.stringify({ error: 'Fixture data is not available yet.' }), { status: 503, headers: { 'Content-Type': url.pathname.startsWith('/calendar/') ? 'text/plain' : 'application/json', 'Cache-Control': 'no-store', 'Retry-After': '3600' } });
     if(!snapshot.demo)snapshot={...snapshot,fixtures:snapshot.fixtures.map(officialVenue)};
-    const meta = await env.FIXTURES.get('meta', 'json') || {};
+    const meta = authoritative?.meta||await env.FIXTURES.get('meta', 'json') || {};
     if (url.pathname.startsWith('/calendar/')) {
       if (snapshot.demo) return new Response('Demo fixtures cannot be subscribed to.', { status: 503 });
       const competition = url.searchParams.get('competition') || 'all';
@@ -45,10 +52,10 @@ export async function handleRequest(request, env) {
     let calendarUrl = null;
     try { const configured = new URL('/calendar/barca.ics', origin); if (configured.protocol === 'https:') calendarUrl = configured.href; } catch {}
     const interval = refreshInterval(snapshot, Date.now());
-    const schedule=env.MATCH_SCHEDULER?await (await env.MATCH_SCHEDULER.getByName('barca-matchday').fetch('https://scheduler/internal/schedule')).json():null;
-    const payload = { ...snapshot, checkedAt: meta.lastSuccessAt || snapshot.checkedAt,
+    const schedule=authoritative?.schedule||null;
+    const payload = { ...snapshot, checkedAt: snapshot.liveCheckedAt||meta.lastSuccessAt || snapshot.checkedAt,
       stale: schedule?Boolean(meta.failures):Date.now() - Date.parse(meta.lastSuccessAt || snapshot.checkedAt) > interval * 2,
-      refreshFailed: Boolean(meta.failures), nextRefreshAt: schedule?schedule.nextUpdateAt:new Date(Date.parse(meta.lastSuccessAt || snapshot.checkedAt) + interval).toISOString(),
+      refreshFailed: Boolean(meta.failures)||authoritativeFailed, nextRefreshAt: schedule?schedule.nextUpdateAt:new Date(Date.parse(meta.lastSuccessAt || snapshot.checkedAt) + interval).toISOString(),
       ...(schedule?{refreshPolicy:'match-times',schedulerActive:!!schedule.alarmAt}:{}),
       calendarUrl, calendarReady: !snapshot.demo && !!calendarUrl && snapshot.fixtures.some(calendarEligible) };
     return new Response(request.method === 'HEAD' ? null : JSON.stringify(payload), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });

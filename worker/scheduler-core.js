@@ -5,6 +5,7 @@ import {refreshStandings} from './standings.js';
 import {refreshHistory} from './history.js';
 import {refreshStadiums} from './stadiums.js';
 import {matchPlan,nextDeviceReminder} from './match-schedule.js';
+import {updateLiveMatches,summaryResponse} from './match-summary.js';
 
 // SQLite-backed Durable Object storage is the authoritative state. KV remains
 // the public data cache and a best-effort backup, never the alarm/dedup store.
@@ -21,9 +22,9 @@ class SchedulerStore{
 export class SchedulerCore{
  constructor(ctx,env,jobs={}){
   this.ctx=ctx;this.env=env;this.tail=Promise.resolve();this.clock=jobs.clock||Date.now;
-  this.jobs={refresh,sendReminders,refreshTeam,refreshStandings,refreshHistory,refreshStadiums,...jobs};
+  this.jobs={refresh,sendReminders,refreshTeam,refreshStandings,refreshHistory,refreshStadiums,updateLiveMatches,...jobs};
   this.store=new SchedulerStore(ctx.storage,env.FIXTURES);
-  this.scheduledEnv={...env,FIXTURES:this.store,nextDeviceReminder};
+  this.scheduledEnv={...env,FIXTURES:this.store,nextDeviceReminder:(snapshot,subscriber)=>nextDeviceReminder(snapshot,subscriber,this.clock())};
  }
  exclusive(work){const promise=this.tail.then(work);this.tail=promise.catch(()=>{});return promise;}
  async initialize(){
@@ -53,12 +54,14 @@ export class SchedulerCore{
   return {events,alarm};
  }
  async status(){
-  const {events,alarm}=await this.arm(),nextUpdate=events.find(e=>e.kind==='refresh'),nextReminder=events.find(e=>e.kind==='reminder');
+  const {events,alarm}=await this.arm(),nextUpdate=events.find(e=>e.kind==='refresh'||e.kind==='match-live'),nextReminder=events.find(e=>e.kind==='reminder');
   return {mode:'match-times',alarmAt:alarm?new Date(alarm).toISOString():null,nextUpdateAt:nextUpdate?new Date(nextUpdate.at).toISOString():null,nextReminderAt:nextReminder?new Date(nextReminder.at).toISOString():null,lastRun:await this.ctx.storage.get('lastRun')||null};
  }
  async fetch(request){return this.exclusive(async()=>{
   await this.initialize();
+  if(new URL(request.url).pathname==='/api/match-summary')return summaryResponse(request,this.scheduledEnv,{now:this.clock()});
   if(new URL(request.url).pathname==='/internal/schedule')return Response.json(await this.status());
+  if(new URL(request.url).pathname==='/internal/fixtures')return Response.json({snapshot:await this.store.get('snapshot','json'),meta:await this.store.get('meta','json')||{},schedule:await this.status()});
   const response=await pushRequest(request,this.scheduledEnv);
   await this.arm();
   if(new URL(request.url).pathname==='/api/push/config'&&request.method==='GET'&&response.ok){
@@ -84,6 +87,17 @@ export class SchedulerCore{
      if(result.refresh==='failed'&&attempt<=3&&retryAt<event.deadline)state.retries[event.id]={at:retryAt,deadline:event.deadline,phase:event.phase,attempt};
     }
     state.completed=Object.fromEntries(Object.entries(state.completed).slice(-400));
+    await this.ctx.storage.put('scheduleState',state);
+   }
+   const live=due.filter(event=>event.kind==='match-live');
+   if(live.length){
+    try{result.live=await this.jobs.updateLiveMatches(this.scheduledEnv,{now,fixtures:live.map(event=>event.matchId),force:live.some(event=>event.phase==='final-details')});}
+    catch{result.live={error:'official-match-update-failed'};}
+    state.liveAttempts={...state.liveAttempts};state.finalDetailsCompleted={...state.finalDetailsCompleted};
+    for(const event of live){state.liveAttempts[event.matchId]=now;if(event.phase==='final-details')state.finalDetailsCompleted[event.matchId]=true;}
+    // Record attempts even on outage so unavailable data cannot cause a tight loop.
+    state.liveAttempts=Object.fromEntries(Object.entries(state.liveAttempts).slice(-60));
+    state.finalDetailsCompleted=Object.fromEntries(Object.entries(state.finalDetailsCompleted).slice(-60));
     await this.ctx.storage.put('scheduleState',state);
    }
    // Re-evaluate the refreshed schedule so a moved/cancelled match cannot use

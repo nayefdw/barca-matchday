@@ -31,6 +31,14 @@ export function matchPlan(snapshot,subscribers,state={},now=Date.now()){
     if(at<deadline)events.push({id:'reminder|'+reminderMark(f,s),kind:'reminder',at,deadline});
    }
   }
+  // Shared one-minute checks run only in the match window, then stop at full time.
+  if(['TIMED','IN_PLAY','PAUSED','SUSPENDED'].includes(f.status)&&now<kickoff+3*HOUR){
+   const last=state.liveAttempts?.[f.id]||0,at=Math.max(kickoff-2*MINUTE,last+MINUTE);
+   if(at<kickoff+3*HOUR)events.push({id:'live|'+f.id,kind:'match-live',phase:'live',matchId:f.id,at,deadline:kickoff+3*HOUR});
+  }
+  const ended=Date.parse(f.summaryFinalAt);
+  if(f.status==='FINISHED'&&Number.isFinite(ended)&&!state.finalDetailsCompleted?.[f.id]&&now<ended+HOUR)
+   events.push({id:'final-details|'+f.id,kind:'match-live',phase:'final-details',matchId:f.id,at:ended+2*MINUTE,deadline:ended+HOUR});
   addRefresh('after',kickoff+3*HOUR,kickoff+3*DAY);
  }
  return events.sort((a,b)=>a.at-b.at||a.id.localeCompare(b.id));
