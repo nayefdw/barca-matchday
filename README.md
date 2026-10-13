@@ -2,7 +2,7 @@
 
 A lightweight mobile-first PWA: a stadium match card, searchable fixtures and results, a monthly calendar, News / Squad / Stats sections, and an iPhone calendar subscription. Plain HTML, CSS and JavaScript; Cloudflare Worker + KV public cache and a SQLite-backed match-time scheduler.
 
-## Design and features · version 2.6.0
+## Design and features · version 2.6.1
 
 - A blended translucent header with an original blue/red monogram, Barça / Matchday branding, and no Cartel word in the banner. Floating glass cards, soft blue/garnet lighting, blue/red active-tab accents and a floating bottom navigation bar.
 - Home: next match with full club names and real crests, prominent kickoff, glass days/hours/minutes/seconds countdown, LIVE/half-time status and the latest delayed score, Previous / Then / After fixture strip, recent form and match sharing. Sharing uses the device share sheet or copy fallback; a public real-data deployment includes a match link.
@@ -34,6 +34,10 @@ npm test
 ```
 
 The preview uses clearly labelled **illustrative fixtures**, anchored to the day it starts. It is not the real Barcelona schedule. Calendar subscriptions and single-event exports are disabled for sample data. `node dev/server.js --empty` previews the initial state with no data connected. `node dev/server.js --live-preview` displays an explicitly illustrative 2–1 live poster; this never touches production data.
+
+## Release 2.6.1 · ten-minute final result
+
+The main poster retains the finished match for ten minutes after full-time is first confirmed, then advances automatically to the next fixture. Reopening or refreshing does not restart the delay. The finished summary remains accessible through Previous and results; if no upcoming fixture is available, the last result remains as a fallback. This replaces the prior six-hour window measured from kickoff.
 
 ## Release 2.6.0 · live updates and match summaries
 

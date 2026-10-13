@@ -1,4 +1,12 @@
-# Verification · 13 October 2026
+# Verification · 14 October 2026
+
+## Version 2.6.1 · 14 October 2026
+
+The poster now retains the final result for ten minutes from confirmed full-time, instead of six hours from kickoff. Rendering and the one-second foreground check share the same selection, so the poster advances without needing a manual refresh. Official confirmation time persists in the fixture; a recent provider-only result records its first observed confirmation locally without resetting on refresh. Live matches retain priority, completed summaries remain in Previous, and the last result is retained if no future fixture exists.
+
+All 16 targeted poster/history and match-summary checks pass, including the exact ten-minute boundary, provider-only confirmation, live priority and Previous/result fallback. No notification or backend behavior was changed.
+
+Published Worker version: `edb1a813-13b1-4bfa-a315-e163b20b0b57`. Production app.js, sw.js and poster.js hashes match tested source. The public fixture snapshot selects the upcoming Real Betis–FC Barcelona fixture after the confirmation window expires. Service-worker shell v26 distributes the update.
 
 ## Version 2.6.0 · 13 October 2026
 

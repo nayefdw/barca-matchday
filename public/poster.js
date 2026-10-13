@@ -1,5 +1,11 @@
-import {upcoming} from './state.js';
+import {upcoming,currentMatch} from './state.js';
 import {finishedFixtures,dateKey,matchResult} from './insights.js';
+export function mainPosterFixture(fixtures,confirmedAt,now=Date.now()) {
+  const previous=finishedFixtures(fixtures)[0];
+  const finalAt=Date.parse(previous?.summaryFinalAt||confirmedAt);
+  const recent=previous?.status==='FINISHED'&&Number.isFinite(finalAt)&&now>=finalAt&&now-finalAt<10*60000?previous:null;
+  return currentMatch(fixtures,now)||recent||upcoming(fixtures,now)[0]||previous;
+}
 export function nearbyFixtures(fixtures,focus,now=Date.now()) {
   const previous=finishedFixtures(fixtures).find(f=>Date.parse(f.kickoffUtc)<=now&&f.id!==focus.id);
   const next=upcoming(fixtures,now).filter(f=>f.id!==focus.id);

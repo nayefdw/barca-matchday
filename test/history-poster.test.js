@@ -2,12 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {normalizeHistory,refreshHistory,historyResponse} from '../worker/history.js';
 import {recentMeetings,meetingOutcome} from '../public/history.js';
-import {nearbyFixtures,posterState} from '../public/poster.js';
+import {nearbyFixtures,posterState,mainPosterFixture} from '../public/poster.js';
 import {currentMatch} from '../public/state.js';
 import {sampleSnapshot} from '../dev/sample.js';
 import {handleRequest} from '../worker/index.js';
 const now=Date.parse('2026-10-07T12:00:00Z'),at=new Date(now).toISOString();
 const snapshot=sampleSnapshot(now),match=snapshot.fixtures.find(f=>f.id==='fd-101');
+test('final poster advances exactly ten minutes after confirmation, retaining live priority and result access',()=>{
+ const final={...match,id:'final',status:'FINISHED',score:{home:2,away:1},kickoffUtc:new Date(now-2*3600000).toISOString(),summaryFinalAt:at};
+ const next={...match,id:'next',status:'TIMED',kickoffUtc:new Date(now+86400000).toISOString()};
+ const fixtures=[final,next];
+ assert.equal(mainPosterFixture(fixtures,null,now+599999).id,'final');
+ assert.equal(mainPosterFixture(fixtures,null,now+600000).id,'next');
+ assert.equal(nearbyFixtures(fixtures,next,now+600000)[0].fixture.id,'final');
+ assert.equal(mainPosterFixture([final],null,now+600000).id,'final');
+ assert.equal(mainPosterFixture([{...final,summaryFinalAt:null},next],at,now+599999).id,'final');
+ assert.equal(mainPosterFixture([{...final,summaryFinalAt:null},next],at,now+600000).id,'next');
+ assert.equal(mainPosterFixture([{...next,status:'IN_PLAY'},final],null,now+1).id,'next');
+});
 const raw=(id=900,home=true)=>({id,utcDate:'2026-03-05T18:30:00Z',status:'FINISHED',homeTeam:home?match.homeTeam:match.awayTeam,awayTeam:home?match.awayTeam:match.homeTeam,competition:{code:'PD',name:'La Liga'},score:{fullTime:{home:2,away:1},duration:'REGULAR'}});
 class KV {constructor(){this.store=new Map()}async get(k,t){const v=this.store.get(k);return v==null?null:t==='json'?JSON.parse(v):v}async put(k,v){this.store.set(k,v)}}
 test('historical meetings reject a different opponent, duplicate IDs and corrupt scores',()=>{
