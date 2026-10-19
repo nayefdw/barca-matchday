@@ -31,9 +31,13 @@ export function matchPlan(snapshot,subscribers,state={},now=Date.now()){
     if(at<deadline)events.push({id:'reminder|'+reminderMark(f,s),kind:'reminder',at,deadline});
    }
   }
-  // Shared one-minute checks run only in the match window, then stop at full time.
+  // Check for announced lineups before kickoff; faster shared checks begin near kickoff.
+  if(['TIMED','SCHEDULED'].includes(f.status)&&now<kickoff-2*MINUTE){
+   const last=state.liveAttempts?.[f.id]||0,at=Math.max(kickoff-90*MINUTE,last+2*MINUTE);
+   if(at<kickoff-2*MINUTE)events.push({id:'lineup|'+f.id,kind:'match-live',phase:'lineup',matchId:f.id,at,deadline:kickoff-2*MINUTE});
+  }
   if(['TIMED','IN_PLAY','PAUSED','SUSPENDED'].includes(f.status)&&now<kickoff+3*HOUR){
-   const last=state.liveAttempts?.[f.id]||0,at=Math.max(kickoff-2*MINUTE,last+MINUTE);
+   const last=state.liveAttempts?.[f.id]||0,at=Math.max(kickoff-2*MINUTE,last+20000);
    if(at<kickoff+3*HOUR)events.push({id:'live|'+f.id,kind:'match-live',phase:'live',matchId:f.id,at,deadline:kickoff+3*HOUR});
   }
   const ended=Date.parse(f.summaryFinalAt);

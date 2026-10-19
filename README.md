@@ -2,7 +2,7 @@
 
 A lightweight mobile-first PWA: a stadium match card, searchable fixtures and results, a monthly calendar, News / Squad / Stats sections, and an iPhone calendar subscription. Plain HTML, CSS and JavaScript; Cloudflare Worker + KV public cache and a SQLite-backed match-time scheduler.
 
-## Design and features · version 2.6.1
+## Design and features · version 2.7.0
 
 - A blended translucent header with an original blue/red monogram, Barça / Matchday branding, and no Cartel word in the banner. Floating glass cards, soft blue/garnet lighting, blue/red active-tab accents and a floating bottom navigation bar.
 - Home: next match with full club names and real crests, prominent kickoff, glass days/hours/minutes/seconds countdown, LIVE/half-time status and the latest delayed score, Previous / Then / After fixture strip, recent form and match sharing. Sharing uses the device share sheet or copy fallback; a public real-data deployment includes a match link.
@@ -34,6 +34,16 @@ npm test
 ```
 
 The preview uses clearly labelled **illustrative fixtures**, anchored to the day it starts. It is not the real Barcelona schedule. Calendar subscriptions and single-event exports are disabled for sample data. `node dev/server.js --empty` previews the initial state with no data connected. `node dev/server.js --live-preview` displays an explicitly illustrative 2–1 live poster; this never touches production data.
+
+## Release 2.7.0 · match lineups and poster controls
+
+Match details now include a football pitch with the announced starting XI, match shirt numbers, captain badge and existing credited player portraits where available. Either team's lineup and substitutes can be viewed. The pitch groups players by the positions supplied by the official feed; it explicitly does not claim a tactical formation. Incomplete or unpositioned squads use a list, and unavailable lineups have an honest waiting/retry state. A Starting XI callout appears below the home poster when the shared feed confirms a lineup.
+
+Shared official-source checks begin 90 minutes before confirmed kickoff, every two minutes for lineups. Near kickoff and during play, score/status checks run every 20 seconds instead of every minute; statistics remain cached for one minute. The visible app follows these checks with a two-second allowance and pauses its reads while hidden. Final checks stop at full-time, with the existing last detail recheck and ten-minute final poster window preserved. Existing free football-data.org fixtures remain the schedule source. Its free plan has delayed scores; the official club match centre supplies the supplementary live details without a new paid subscription or API key. Feed freshness remains outside the app's control. Both caches are shared and official-source failures back off for five minutes.
+
+Settings → Match poster adds a live appearance preview, text size (85–120%) and box transparency (0–100%), plus Restore poster defaults. Text remains opaque while countdown/action surfaces change tint and blur. Settings are local to the device and do not change the bottom bar settings. Reduced-transparency preferences retain a readable solid fallback. New modules are cached in shell v28; saved startup screens continue to render before background requests.
+
+All 121 automated checks pass. Responsive browser verification covers 390px and 320px layouts, team switching, substitutes, retained settings and clear box surfaces. A recorded, verified official Real Betis fixture supplies the opt-in local `node dev/server.js --lineup-preview` demonstration; it is not shipped as production fixture data. Physical iPhone and real-time source delivery remain unverified.
 
 ## Release 2.6.1 · ten-minute final result
 

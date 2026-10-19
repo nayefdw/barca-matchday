@@ -29,6 +29,7 @@ export function normalizeMatches(payload, previous, checkedAt, teamId = 81) {
     };
     if(before?.kickoffUtc===fixture.kickoffUtc){
       fixture.summaryFinalAt=before.summaryFinalAt||null;
+      fixture.lineupsAvailable=before.lineupsAvailable===true;
       if(before.source==='FC Barcelona'&&['IN_PLAY','PAUSED','FINISHED'].includes(before.status)&&['TIMED','IN_PLAY','PAUSED'].includes(fixture.status)){
         fixture.status=before.status;fixture.score=before.score;fixture.matchClock=before.matchClock;
         fixture.source=before.source;fixture.sourceUpdatedAt=before.sourceUpdatedAt;

@@ -1,0 +1,443 @@
+{
+  "fixture": {
+    "id": "fd-564713",
+    "competition": "PD",
+    "competitionName": "La Liga",
+    "homeTeam": {
+      "id": 90,
+      "name": "Real Betis Balompié",
+      "shortName": "Betis"
+    },
+    "awayTeam": {
+      "id": 81,
+      "name": "FC Barcelona",
+      "shortName": "Barça"
+    },
+    "kickoffUtc": "2026-10-17T16:30:00.000Z",
+    "timeConfirmed": true,
+    "status": "FINISHED",
+    "venue": "Estadio La Cartuja de Sevilla",
+    "round": "Matchday 9",
+    "score": {
+      "home": 2,
+      "away": 5,
+      "duration": "REGULAR",
+      "penalties": null
+    },
+    "lineupsAvailable": true
+  },
+  "summary": {
+    "schemaVersion": 1,
+    "matchId": "fd-564713",
+    "kickoffUtc": "2026-10-17T16:30:00.000Z",
+    "status": "FINISHED",
+    "score": {
+      "home": 2,
+      "away": 5,
+      "duration": "REGULAR",
+      "penalties": null
+    },
+    "scorers": [
+      {
+        "team": "away",
+        "name": "Lamine Yamal",
+        "minute": "10'",
+        "type": "goal",
+        "seconds": 600
+      },
+      {
+        "team": "home",
+        "name": "Valentín Gómez",
+        "minute": "27'",
+        "type": "goal",
+        "seconds": 1620
+      },
+      {
+        "team": "away",
+        "name": "Rodri",
+        "minute": "41'",
+        "type": "goal",
+        "seconds": 2460
+      },
+      {
+        "team": "away",
+        "name": "Gabriel Jesus",
+        "minute": "51'",
+        "type": "goal",
+        "seconds": 3060
+      },
+      {
+        "team": "home",
+        "name": "Abde Ezzalzouli",
+        "minute": "53'",
+        "type": "goal",
+        "seconds": 3180
+      },
+      {
+        "team": "away",
+        "name": "Eric García",
+        "minute": "62'",
+        "type": "goal",
+        "seconds": 3720
+      },
+      {
+        "team": "away",
+        "name": "Dani Olmo",
+        "minute": "81'",
+        "type": "goal",
+        "seconds": 4860
+      }
+    ],
+    "stats": [],
+    "lineups": [
+      {
+        "side": "home",
+        "teamId": 106,
+        "name": "Real Betis",
+        "confirmed": true,
+        "starters": [
+          {
+            "id": 31905,
+            "name": "Cucho Hernández",
+            "number": 9,
+            "position": "F",
+            "captain": false
+          },
+          {
+            "id": 7163,
+            "name": "Dani Ceballos",
+            "number": 25,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 54177,
+            "name": "Álvaro Valles",
+            "number": 1,
+            "position": "G",
+            "captain": false
+          },
+          {
+            "id": 25246,
+            "name": "Pablo Fornals",
+            "number": 8,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 54065,
+            "name": "Fran García",
+            "number": 11,
+            "position": "D",
+            "captain": false
+          },
+          {
+            "id": 5790,
+            "name": "Diego Llorente",
+            "number": 3,
+            "position": "D",
+            "captain": false
+          },
+          {
+            "id": 4474,
+            "name": "Héctor Bellerín",
+            "number": 2,
+            "position": "D",
+            "captain": true
+          },
+          {
+            "id": 826440,
+            "name": "Facundo Bernal",
+            "number": 6,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 124301,
+            "name": "Valentín Gómez",
+            "number": 16,
+            "position": "D",
+            "captain": false
+          },
+          {
+            "id": 71253,
+            "name": "Abde Ezzalzouli",
+            "number": 10,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 19851,
+            "name": "Giovani Lo Celso",
+            "number": 20,
+            "position": "M",
+            "captain": false
+          }
+        ],
+        "substitutes": [
+          {
+            "id": 144412,
+            "name": "Nelson Deossa",
+            "number": 18,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 43856,
+            "name": "Troy Parrott",
+            "number": 19,
+            "position": "F",
+            "captain": false
+          },
+          {
+            "id": 54066,
+            "name": "Álvaro Fidalgo",
+            "number": 15,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 275155,
+            "name": "José Antonio Morante",
+            "number": 27,
+            "position": "F",
+            "captain": false
+          },
+          {
+            "id": 75381,
+            "name": "Antony",
+            "number": 7,
+            "position": "F",
+            "captain": false
+          },
+          {
+            "id": 22656,
+            "name": "Marc Roca",
+            "number": 21,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 5795,
+            "name": "Isco",
+            "number": 22,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 148840,
+            "name": "Ángel Ortiz",
+            "number": 12,
+            "position": "D",
+            "captain": false
+          },
+          {
+            "id": 138577,
+            "name": "Natan",
+            "number": 4,
+            "position": "D",
+            "captain": false
+          },
+          {
+            "id": 66123,
+            "name": "Rodrigo Riquelme",
+            "number": 17,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 52245,
+            "name": "Diego Conde",
+            "number": 13,
+            "position": "G",
+            "captain": false
+          },
+          {
+            "id": 4957,
+            "name": "Marc Bartra",
+            "number": 5,
+            "position": "D",
+            "captain": false
+          }
+        ]
+      },
+      {
+        "side": "away",
+        "teamId": 49,
+        "name": "FC Barcelona",
+        "confirmed": true,
+        "starters": [
+          {
+            "id": 118929,
+            "name": "Fermín López",
+            "number": 7,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 110491,
+            "name": "Joan García",
+            "number": 1,
+            "position": "G",
+            "captain": false
+          },
+          {
+            "id": 19680,
+            "name": "Gabriel Jesus",
+            "number": 9,
+            "position": "F",
+            "captain": false
+          },
+          {
+            "id": 111861,
+            "name": "Gerard Martín",
+            "number": 18,
+            "position": "D",
+            "captain": false
+          },
+          {
+            "id": 129404,
+            "name": "Lamine Yamal",
+            "number": 10,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 16286,
+            "name": "Rodri",
+            "number": 16,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 52163,
+            "name": "Karim Adeyemi",
+            "number": 14,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 70486,
+            "name": "Pedri",
+            "number": 8,
+            "position": "M",
+            "captain": true
+          },
+          {
+            "id": 141001,
+            "name": "Xavi Espart",
+            "number": 12,
+            "position": "D",
+            "captain": false
+          },
+          {
+            "id": 129400,
+            "name": "Pau Cubarsí",
+            "number": 5,
+            "position": "D",
+            "captain": false
+          },
+          {
+            "id": 15552,
+            "name": "Jules Koundé",
+            "number": 23,
+            "position": "D",
+            "captain": false
+          }
+        ],
+        "substitutes": [
+          {
+            "id": 23747,
+            "name": "Anthony Gordon",
+            "number": 17,
+            "position": "F",
+            "captain": false
+          },
+          {
+            "id": 24156,
+            "name": "Raphinha",
+            "number": 11,
+            "position": "F",
+            "captain": false
+          },
+          {
+            "id": 68906,
+            "name": "Alejandro Balde",
+            "number": 3,
+            "position": "D",
+            "captain": false
+          },
+          {
+            "id": 16291,
+            "name": "Frenkie de Jong",
+            "number": 21,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 16668,
+            "name": "Dominik Livakovic",
+            "number": 25,
+            "position": "G",
+            "captain": false
+          },
+          {
+            "id": 3543,
+            "name": "Wojciech Szczesny",
+            "number": 13,
+            "position": "G",
+            "captain": false
+          },
+          {
+            "id": 24635,
+            "name": "Eric García",
+            "number": 24,
+            "position": "D",
+            "captain": false
+          },
+          {
+            "id": 141411,
+            "name": "Marc Bernal",
+            "number": 22,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 116719,
+            "name": "Gavi",
+            "number": 6,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 140515,
+            "name": "Brian Fariñas",
+            "number": 4,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 16677,
+            "name": "Dani Olmo",
+            "number": 20,
+            "position": "M",
+            "captain": false
+          },
+          {
+            "id": 5051,
+            "name": "João Cancelo",
+            "number": 2,
+            "position": "D",
+            "captain": false
+          }
+        ]
+      }
+    ],
+    "clock": "90+3",
+    "venue": "Estadio La Cartuja de Sevilla",
+    "checkedAt": "2026-10-19T23:21:48.782Z",
+    "source": "FC Barcelona",
+    "sourceUrl": "https://www.fcbarcelona.com/en/matches/138367/match",
+    "officialId": 138367
+  }
+}

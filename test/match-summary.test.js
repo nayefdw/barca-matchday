@@ -51,6 +51,14 @@ test('source outage backs off and preserves a previously verified summary',async
  const result=await loadMatchSummary(env,fixture,{now:now+7*3600000,fetcher});assert.equal(result.stale,true);assert.equal(result.score.home,3);
  await loadMatchSummary(env,fixture,{now:now+7*3600000+60000,fetcher});assert.equal(calls,1);
 });
+test('live scores refresh every twenty seconds while shared statistics refresh once a minute',async()=>{
+ const env={FIXTURES:new KV()},active={...record,status:'L'},local={...fixture,status:'IN_PLAY'};let fixtureCalls=0,statCalls=0;
+ const fetcher=async url=>{if(url.includes('/stats/')){statCalls++;return Response.json({...stats,entity:active});}if(url.includes('?teams='))return Response.json({content:[active]});fixtureCalls++;return Response.json(active);};
+ await loadMatchSummary(env,local,{now,fetcher});
+ await loadMatchSummary(env,local,{now:now+19999,fetcher});assert.equal(fixtureCalls,1);
+ await loadMatchSummary(env,local,{now:now+20000,fetcher});assert.equal(fixtureCalls,2);assert.equal(statCalls,1);
+ await loadMatchSummary(env,local,{now:now+60000,fetcher});assert.equal(fixtureCalls,3);assert.equal(statCalls,2);
+});
 test('summary presentation replaces history, escapes scorer content and never fabricates missing stats',()=>{
  const summary=normalizeOfficialSummary(fixture,record,stats,now);summary.scorers[0].name='<img src=x onerror=alert(1)>';
  const html=matchSummaryPanel(fixture,summary);assert.ok(html.includes('MATCH SUMMARY'));assert.ok(html.includes('Shots on target'));assert.ok(!html.includes('Recent meetings'));assert.ok(html.includes('&lt;img'));assert.ok(!html.includes('<img src=x'));

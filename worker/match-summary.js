@@ -21,6 +21,15 @@ export function matchOfficialFixture(fixture,records){
  return matches.length===1?matches[0]:null;
 }
 const STAT_DEFS=[['possession','Possession','possession_percentage','%'],['shots','Shots','total_scoring_att',''],['onTarget','Shots on target','ontarget_scoring_att',''],['corners','Corners','won_corners',''],['passes','Passes','total_pass',''],['passAccuracy','Pass accuracy',null,'%'],['fouls','Fouls','fk_foul_lost',''],['yellow','Yellow cards','total_yel_card',''],['red','Red cards','total_red_card',''],['offsides','Offsides','total_offside',''],['saves','Saves','saves','']];
+export function normalizeLineups(record){
+ return (record.teams||[]).map((entry,index)=>{
+  const list=record.teamLists?.find(list=>list.teamId===entry.team?.id);
+  const players=items=>Array.isArray(items)?items.slice(0,30).filter(p=>Number.isInteger(p.id)&&p.id>0&&clean(p.name?.display)).map(p=>({id:p.id,name:clean(p.name.display),number:Number.isInteger(p.matchShirtNumber)&&p.matchShirtNumber>0&&p.matchShirtNumber<100?p.matchShirtNumber:null,position:['G','D','M','F'].includes(p.matchPosition)?p.matchPosition:null,captain:p.captain===true})):[];
+  const starters=players(list?.lineup),substitutes=players(list?.substitutes);
+  const valid=new Set([...starters,...substitutes].map(p=>p.id)).size===starters.length+substitutes.length;
+  return {side:index===0?'home':'away',teamId:entry.team.id,name:clean(entry.team.name),confirmed:valid&&starters.length===11,starters:valid?starters:[],substitutes:valid?substitutes:[]};
+ }).filter(team=>team.starters.length||team.substitutes.length);
+}
 export function normalizeOfficialSummary(local,record,statistics,now=Date.now()){
  if(!matchOfficialFixture(local,[record])||!Number.isInteger(record.id)||record.id<=0)return null;
  const status={U:'TIMED',L:record.phase==='H'?'PAUSED':'IN_PLAY',C:'FINISHED',P:'POSTPONED'}[record.status];
@@ -35,7 +44,7 @@ export function normalizeOfficialSummary(local,record,statistics,now=Date.now())
  const home=statsFor(record.teams[0].team.id),away=statsFor(record.teams[1].team.id);
  const accuracy=stats=>stats.get('total_pass')>0&&stats.has('accurate_pass')?Math.round(stats.get('accurate_pass')/stats.get('total_pass')*1000)/10:null;
  const stats=STAT_DEFS.map(([key,label,name,unit])=>({key,label,unit,home:key==='passAccuracy'?accuracy(home):home.get(name)??null,away:key==='passAccuracy'?accuracy(away):away.get(name)??null})).map(row=>row.unit==='%'?{...row,home:row.home>100?null:row.home,away:row.away>100?null:row.away}:row).filter(row=>row.home!==null||row.away!==null);
- return {schemaVersion:1,matchId:local.id,kickoffUtc:new Date(record.kickoff.millis).toISOString(),status,score:{home:values[0],away:values[1],duration:record.shootout?'PENALTY_SHOOTOUT':record.extraTime?'EXTRA_TIME':'REGULAR',penalties:null},scorers,stats,clock:clean(record.clock?.label?.split("'")[0]||''),venue:clean(record.ground?.name)||null,checkedAt:new Date(now).toISOString(),source:'FC Barcelona',sourceUrl:`https://www.fcbarcelona.com/en/matches/${record.id}/match`,officialId:record.id};
+ return {schemaVersion:1,matchId:local.id,kickoffUtc:new Date(record.kickoff.millis).toISOString(),status,score:{home:values[0],away:values[1],duration:record.shootout?'PENALTY_SHOOTOUT':record.extraTime?'EXTRA_TIME':'REGULAR',penalties:null},scorers,stats,lineups:normalizeLineups(record),clock:clean(record.clock?.label?.split("'")[0]||''),venue:clean(record.ground?.name)||null,checkedAt:new Date(now).toISOString(),source:'FC Barcelona',sourceUrl:`https://www.fcbarcelona.com/en/matches/${record.id}/match`,officialId:record.id};
 }
 async function readJson(path,fetcher){
  const response=await fetcher(API+path,{headers:{Origin:'https://www.fcbarcelona.com'},signal:AbortSignal.timeout(10000)});
@@ -44,7 +53,8 @@ async function readJson(path,fetcher){
 }
 export async function loadMatchSummary(env,fixture,{now=Date.now(),fetcher=fetch,force=false}={}){
  const summaries=await env.FIXTURES.get(CACHE,'json')||{},saved=summaries[fixture.id];
- const ttl=['FINISHED','AWARDED'].includes(saved?.status)?6*hour:minute;
+ const nearKickoff=now>=Date.parse(fixture.kickoffUtc)-2*minute&&now<Date.parse(fixture.kickoffUtc)+3*hour;
+ const ttl=['FINISHED','AWARDED'].includes(saved?.status)&&Array.isArray(saved?.lineups)?6*hour:nearKickoff||['IN_PLAY','PAUSED','SUSPENDED'].includes(saved?.status)?20000:2*minute;
  if(saved&&!force&&now-Date.parse(saved.checkedAt)<ttl)return saved;
  if(saved?.retryAfterAt&&now<Date.parse(saved.retryAfterAt))return saved;
  try{
@@ -56,8 +66,12 @@ export async function loadMatchSummary(env,fixture,{now=Date.now(),fetcher=fetch
   }
   const mapped=matchOfficialFixture(fixture,index.fixtures);if(!mapped)throw new Error('Official match not matched');
   const record=await readJson('/fixtures/'+mapped.id,fetcher);let stats=null;
-  if(['L','C'].includes(record.status))try{stats=await readJson('/stats/match/'+mapped.id+'?altIds=true',fetcher);}catch{}
+  const recentStats=saved?.officialId===mapped.id&&Array.isArray(saved.stats)&&now-Date.parse(saved.statisticsCheckedAt)<minute;
+  if(['L','C'].includes(record.status)&&!recentStats)try{stats=await readJson('/stats/match/'+mapped.id+'?altIds=true',fetcher);}catch{}
   const summary=normalizeOfficialSummary(fixture,record,stats,now);if(!summary)throw new Error('Invalid official match');
+  if(stats)summary.statisticsCheckedAt=summary.checkedAt;
+  else if(saved?.officialId===mapped.id&&Array.isArray(saved.stats)){summary.stats=saved.stats;summary.statisticsCheckedAt=saved.statisticsCheckedAt||saved.checkedAt;}
+  if(!summary.lineups.length&&saved?.officialId===mapped.id&&saved.lineups?.length){summary.lineups=saved.lineups;summary.savedLineup=true;}
   summaries[fixture.id]=summary;
   const kept=Object.fromEntries(Object.entries(summaries).sort((a,b)=>Date.parse(b[1].checkedAt)-Date.parse(a[1].checkedAt)).slice(0,60));
   await env.FIXTURES.put(CACHE,JSON.stringify(kept));return summary;
@@ -72,7 +86,7 @@ export function applyMatchSummary(fixture,summary,now=Date.now()){
  const difference=Math.abs(Date.parse(fixture.kickoffUtc)-Date.parse(summary.kickoffUtc));
  if(!Number.isFinite(difference)||difference>90*minute)return fixture;
  const score=summary.score.home===null||summary.score.away===null?fixture.score:{...summary.score,penalties:summary.score.penalties||fixture.score?.penalties||null};
- const updated={...fixture,status:summary.status,score,venue:summary.venue||fixture.venue,source:summary.source,sourceUpdatedAt:summary.checkedAt,matchClock:summary.clock,summaryFinalAt:fixture.summaryFinalAt||(summary.status==='FINISHED'?new Date(now).toISOString():null)};
+ const updated={...fixture,status:summary.status,score,lineupsAvailable:summary.lineups?.some(team=>team.confirmed)||false,venue:summary.venue||fixture.venue,source:summary.source,sourceUpdatedAt:summary.checkedAt,matchClock:summary.clock,summaryFinalAt:fixture.summaryFinalAt||(summary.status==='FINISHED'?new Date(now).toISOString():null)};
  const signature=record=>JSON.stringify({home:record.homeTeam.name,away:record.awayTeam.name,competition:record.competitionName,start:record.calendarStart,date:record.calendarDate,status:record.status,venue:record.venue,round:record.round});
  updated.calendarSignature=signature(updated);
  const changed=updated.calendarSignature!==(fixture.calendarSignature||signature(fixture));

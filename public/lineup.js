@@ -1,0 +1,16 @@
+import {safePhoto} from './photos.js';
+const e=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const key=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+export function lineupPanel(f,payload,{side,roster=[],loading=false,failed=false}={}){
+ const teams=payload?.lineups||[],barcaSide=f.homeTeam.id===81?'home':'away';
+ const selected=teams.find(team=>team.side===(side||barcaSide))||teams[0];
+ const person=(p,pitch=false)=>{
+  const known=selected?.side===barcaSide?roster.find(player=>key(player.name)===key(p.name)):null;
+  const photo=safePhoto(known?.photo?.url);
+  const shirt=`<span class="lineup-shirt" aria-hidden="true">${e(p.number??'–')}</span>`;
+  return `<div class="${pitch?'pitch-player':'bench-player'}">${photo?`<span class="lineup-portrait">${shirt}<img class="lineup-photo" src="${e(photo)}" alt="" loading="lazy" referrerpolicy="no-referrer"></span>`:shirt}<span class="lineup-player-name">${e(p.name)}${p.captain?' <b aria-label="Captain">C</b>':''}</span>${photo?`<small>#${e(p.number??'–')}</small>`:''}</div>`;
+ };
+ const groups=selected?['G','D','M','F'].map(position=>({position,players:selected.starters.filter(p=>p.position===position)})):[];
+ const pitch=selected?.confirmed&&groups[0]?.players.length===1&&groups.reduce((sum,row)=>sum+row.players.length,0)===11&&groups.every(row=>row.players.length<=5);
+ return `<div class="lineup-heading"><span><span class="eyebrow">MATCH LINEUP</span><h3>${selected?.confirmed?'Starting XI':selected?'Match squad':'Awaiting the lineup'}</h3></span><span class="lineup-symbol" aria-hidden="true">↗</span></div>${teams.length?`<div class="lineup-tabs" role="group" aria-label="Choose lineup team">${teams.map(team=>`<button data-lineup-team="${e(team.side)}" aria-pressed="${team===selected}">${e(team.name)}</button>`).join('')}</div>`:''}${selected?`${pitch?`<div class="football-pitch" role="group" aria-label="${e(selected.name)} starting players by position"><div class="pitch-markings" aria-hidden="true"><i></i></div>${groups.filter(row=>row.players.length).reverse().map(row=>`<div class="pitch-row" style="--players:${row.players.length}">${row.players.map(p=>person(p,true)).join('')}</div>`).join('')}</div><p class="lineup-caption">Position guide · tactical formation not supplied</p>`:`<div class="lineup-list">${selected.starters.map(p=>person(p)).join('')}</div>${!selected.confirmed?'<p class="lineup-caption">Squad announced · starting XI not confirmed</p>':''}`}${selected.substitutes.length?`<details class="lineup-bench"><summary>Substitutes <span>${selected.substitutes.length}</span></summary><div class="lineup-list">${selected.substitutes.map(p=>person(p)).join('')}</div></details>`:''}<p class="lineup-caption">${payload.stale||payload.savedLineup?'Saved lineup · latest check unavailable.':'FC Barcelona match centre'}${roster.some(player=>safePhoto(player.photo?.url))?' · Photo credits in Squad profiles.':''}</p>`:`<p class="lineup-empty">${loading?'Checking the official match squad…':failed||payload?.unavailable?'Could not check the lineup. It will retry when connected.':'The club has not published the starting XI in the match feed yet.'}</p>`}`;
+}

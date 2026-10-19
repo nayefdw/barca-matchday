@@ -1,4 +1,12 @@
-# Verification · 14 October 2026
+# Verification · 20 October 2026
+
+## Version 2.7.0 · 20 October 2026
+
+121 automated checks pass. New tests cover correct-team lineup mapping, shirt numbers, captain markers, incomplete/duplicate squads, safe pitch rendering, settings validation, the exact 20-second live cache boundary, one-minute statistics caching and pre-match lineup alarms across object restart. Reminder retry and deduplication coverage still passes with the intervening lineup checks. The existing ten-minute final poster boundary and cache-first startup checks pass. App and Worker module syntax checks pass.
+
+The official public fixture endpoint returned two starting XIs (11 players each) for the verified Real Betis–FC Barcelona match, joined by exact teams, competition and kickoff before normalization. A local recorded response supports preview without production schedule changes. At 390px, the lineup sheet client and scroll widths both measure 358px. The pitch, real portraits, positional disclaimer, team switching and substitutes were visually inspected. The poster's maximum text and transparency settings apply immediately (scale 1.2, box tint alpha zero); saved settings survive reload. No test push was sent. Physical iPhone and live source latency were not measured.
+
+Published Worker version: `7a10bf8d-05b0-4721-91a4-570f1f634db9`. All six changed/new public asset hashes match tested source. The production summary endpoint returns confirmed starting XIs of eleven and twelve substitutes for both teams. The authoritative fixture endpoint reports match-time scheduling with the next pre-match check armed. Reopening the published app adopts shell v28 and displays the lineup with player photos. At 320px, the maximally sized poster stays within its 271px content width; dialog client/scroll widths both measure 288px.
 
 ## Version 2.6.1 · 14 October 2026
 

@@ -8,6 +8,8 @@ import { sampleSnapshot, sampleTeam, sampleStandings } from './sample.js';
 const root = path.resolve(fileURLToPath(new URL('../public/', import.meta.url)));
 const port = Number(process.env.PORT || 4187);
 const demo = sampleSnapshot();
+const lineupPreview=process.argv.includes('--lineup-preview')?JSON.parse(await readFile(new URL('./lineup-sample.json',import.meta.url),'utf8')):null;
+if(lineupPreview)demo.fixtures.unshift(lineupPreview.fixture);
 if(process.argv.includes('--live-preview')){
  const focus=demo.fixtures.find(f=>f.status==='TIMED'&&f.timeConfirmed&&Date.parse(f.kickoffUtc)>Date.now());
  if(focus){focus.status='IN_PLAY';focus.score={...focus.score,home:2,away:1};focus.kickoffUtc=new Date(Date.now()-1800000).toISOString();}
@@ -18,6 +20,10 @@ const empty = process.argv.includes('--empty');
 const types = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.svg':'image/svg+xml', '.png':'image/png', '.webmanifest':'application/manifest+json', '.webp':'image/webp' };
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${port}`);
+  if(lineupPreview&&url.pathname==='/api/match-summary'){
+    const summary=url.searchParams.get('match')===lineupPreview.fixture.id?lineupPreview.summary:{schemaVersion:1,matchId:url.searchParams.get('match'),unavailable:true};
+    res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(req.method==='HEAD'?undefined:JSON.stringify(summary));
+  }
   if(url.pathname==='/api/push/config'&&req.method==='GET'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(JSON.stringify({ready:false,publicKey:null}));}
   if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405, { Allow:'GET, HEAD' }); return res.end(); }
   if(url.pathname==='/api/stadiums'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(req.method==='HEAD'?undefined:JSON.stringify({schemaVersion:1,stadiums:CURATED_STADIUMS}));}
@@ -50,7 +56,9 @@ const server = http.createServer(async (req, res) => {
     const name = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
     const file = path.resolve(root, '.' + name);
     if (!file.startsWith(root + path.sep) && file !== root) { res.writeHead(403); return res.end(); }
-    const body = await readFile(file);
+    let body = await readFile(file);
+    // The opt-in recorded-lineup preview can fetch its local recorded response.
+    if(lineupPreview&&name==='/app.js')body=Buffer.from(body.toString().replace("summaryPending.has(f.id)||data?.demo","summaryPending.has(f.id)"));
     res.writeHead(200, { 'Content-Type':types[path.extname(file)] || 'application/octet-stream', 'Cache-Control':'no-store', 'X-Content-Type-Options':'nosniff' });
     res.end(req.method === 'HEAD' ? undefined : body);
   } catch { res.writeHead(404); res.end(); }

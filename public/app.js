@@ -1,6 +1,8 @@
 import {TIME_ZONES,deviceTimezone,timezonePreference,resolveTimezone,timezoneLabel} from './timezones.js';
 import {countdownClock,livePresentation,clockFormat} from './match-display.js';
 import {matchHasSummary,matchSummaryPanel} from './match-summary.js';
+import {lineupPanel} from './lineup.js';
+import {posterPreferences,posterStyle} from './poster-preferences.js';
 import {installPullRefresh} from './pull-refresh.js';
 import {bounded,startPushSubscription,notificationError} from './notifications.js';
 import {COMPETITION_BADGES} from './competitions.js';
@@ -32,6 +34,17 @@ const paths = {
   shirt:'<path d="m8 3-6 4 3 5 3-1v10h8V11l3 1 3-5-6-4a4 4 0 0 1-8 0Z"/>', stats:'<path d="M4 21V11h4v10m2 0V3h4v18m2 0V7h4v14"/>', bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-11 12a2 2 0 0 0 4 0"/>', news:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h4v4H7zm8 0h2m-2 4h2M7 16h10"/>'
 };
 const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[name]}</svg>`;
+let posterPref=posterPreferences(null),posterPrefSaved=true;
+try{posterPref=posterPreferences(JSON.parse(localStorage.getItem('barca-poster-appearance')));}catch{}
+function applyPosterAppearance(){
+ for(const [key,value] of Object.entries(posterStyle(posterPref)))document.documentElement.style.setProperty(key,value);
+ for(const [key,id] of [['textSize','text-size'],['transparency','transparency']]){const output=$('#poster-'+id+'-value');if(output)output.textContent=posterPref[key]+'%';}
+ const note=$('#poster-appearance-status');if(note)note.textContent=posterPrefSaved?'Preview updates instantly. Saved on this device.':'Applied for this visit. Device storage is unavailable.';
+}
+function posterAppearanceSettings(){
+ const slider=(key,id,label,min,max)=>`<div class="bar-range-heading"><label for="poster-${id}">${label}</label><output id="poster-${id}-value" for="poster-${id}">${posterPref[key]}%</output></div><input id="poster-${id}" type="range" class="bar-transparency-slider" min="${min}" max="${max}" step="5" value="${posterPref[key]}">`;
+ return `<section class="setting-card floating-card poster-appearance"><h2>Match poster</h2><p>Make the main match card feel right for you.</p><div class="poster-settings-preview" aria-label="Poster appearance preview"><span>FC Barcelona · Matchday</span><strong>21:00</strong><div class="poster-sample-box">02 <small>days</small> &nbsp; 04 <small>hours</small></div><div class="poster-sample-actions"><span>Details</span><span>Calendar</span></div></div>${slider('textSize','text-size','Text size',85,120)}<div class="bar-range-ends"><span>Smaller</span><span>Larger</span></div>${slider('transparency','transparency','Box transparency',0,100)}<div class="bar-range-ends"><span>Solid</span><span>Clear</span></div><p id="poster-appearance-status" role="status">Preview updates instantly. Saved on this device.</p><button class="text-button" data-action="reset-poster-appearance">Restore poster defaults</button></section>`;
+}
 let stadiumData={...CURATED_STADIUMS},venueData={},stadiumRefreshing=false;
 function venueLabel(f){const venue=matchVenue(f,venueData);return venue?venue.name:'Venue not supplied';}
 function venueNote(f){const venue=matchVenue(f,venueData);return venue&&!venue.confirmed?'<p class="sheet-note">The fixture feed omits the match venue. This is the home club’s listed ground; a venue change is still possible.</p>':'';}
@@ -148,7 +161,7 @@ function renderMatch(){
   const focus=homePosterFixture();
   if(!focus)return emptyView();
   const nearby=nearbyFixtures(data.fixtures,focus);
-  return `<section class="home-content">${hero(focus)}<div class="match-strip" style="--columns:${nearby.length}" aria-label="Nearby fixtures">${nearby.map(item=>miniMatch(item.fixture,item.label)).join('')}</div>${formPanel(data.fixtures)}${calendarBanner()}<p class="coverage-line"><i class="competition-dot"></i>La Liga <i class="competition-dot europe"></i>Champions League <span>· Cups not tracked</span></p></section>`;
+  return `<section class="home-content">${hero(focus)}${focus.lineupsAvailable?`<button class="lineup-callout floating-card" data-match="${e(focus.id)}"><span><b>Starting XI is in</b><small>See the lineup on the pitch</small></span>${icon('arrow')}</button>`:''}<div class="match-strip" style="--columns:${nearby.length}" aria-label="Nearby fixtures">${nearby.map(item=>miniMatch(item.fixture,item.label)).join('')}</div>${formPanel(data.fixtures)}${calendarBanner()}<p class="coverage-line"><i class="competition-dot"></i>La Liga <i class="competition-dot europe"></i>Champions League <span>· Cups not tracked</span></p></section>`;
 }
 function fixtureList(){
   const base=fixtureView==='results'?finishedFixtures(data.fixtures):upcoming(data.fixtures);
@@ -192,7 +205,7 @@ async function loadStandings(){
  catch{tableFailed[code]=true;}finally{tableRefreshing=false;if(page==='stats')render();if(page==='stats'&&tableCompetition!==code)loadStandings();}
 }
 document.addEventListener('load',event=>{if(event.target.matches?.('.player-photo'))event.target.parentElement.classList.add('photo-loaded');},true);
-document.addEventListener('error',event=>{if(event.target.matches?.('.player-photo'))event.target.remove();},true);
+document.addEventListener('error',event=>{if(event.target.matches?.('.player-photo,.lineup-photo'))event.target.remove();},true);
 
 function playerGroup(player){const p=player.position.toLowerCase();return p.includes('goal')?'Goalkeepers':p.includes('def')||p.includes('back')?'Defenders':p.includes('mid')?'Midfielders':p.includes('off')||p.includes('forw')||p.includes('attack')||p.includes('wing')?'Forwards':'Other';}
 function kit(player){return `<svg class="player-kit" viewBox="0 0 140 140" aria-hidden="true"><path d="m45 16-34 20 15 31 16-7v65h56V60l16 7 15-31-34-20a28 28 0 0 1-50 0Z" fill="#14529d" stroke="#6e95c1" stroke-width="1.1"/><path d="M52 27h16v96H52zm30 0h16v96H82z" fill="#a82953"/><path d="M47 16q23 27 46 0" stroke="#e8bc82" stroke-width="3" fill="none"/><text x="70" y="89" text-anchor="middle" fill="#f9eccf" font-family="system-ui,sans-serif" font-size="31" font-weight="800">${e(player.shirtNumber || player.name.split(' ').map(n=>n[0]).slice(0,2).join(''))}</text></svg>`;}
@@ -305,9 +318,10 @@ async function updatePhotoSettings(operation,focusSelector){
  catch(error){toast(error.name==='QuotaExceededError'?'Your device has no room for another photo. Remove one and try again.':error.message||'The photo preference could not be saved.');}
  finally{photoSaving=false;}
 }
-function renderSettings(){return `<section class="content">${pageHeading('YOUR MATCHDAY','Settings')}${barAppearanceSettings()}${photoSettings()}${notificationCard()}<div class="setting-card floating-card"><h2>iPhone Calendar</h2><p>Subscribe for fixture changes, or add a single match from its details.</p><button class="primary" data-action="calendar">${icon('calendar')} Calendar subscription</button></div><div class="setting-card floating-card"><h2>Time display</h2><label for="time-format">Time format</label><select id="time-format"><option value="24" ${timeFormat==='24'?'selected':''}>24-hour (20:30)</option><option value="12" ${timeFormat==='12'?'selected':''}>12-hour (8:30 PM)</option></select><label for="timezone">Display times in</label><select id="timezone"><option value="local" ${timezone==='local'?'selected':''}>Automatic — phone (${e(deviceTimezone())})</option>${TIME_ZONES.map(([zone,label])=>`<option value="${zone}" ${timezone===zone?'selected':''}>${e(label)}</option>`).join('')}</select><p>Automatic follows your phone’s timezone. Manual choices include local daylight saving changes.</p><p class="sheet-note">Apple Calendar follows your phone’s calendar settings.</p></div><div class="setting-card floating-card"><h2>Data & coverage</h2><p>La Liga and Champions League. Scores and schedules may be delayed. Copa del Rey is outside the free provider’s coverage.</p><a class="inline-link" href="https://www.fcbarcelona.com/en/football/first-team/schedule" target="_blank" rel="noopener">Official Barça calendar, including Copa del Rey ${icon('external')}</a><p>${data?.demo?'Illustrative sample fixtures.':data?.checkedAt?'Last checked '+e(date(data.checkedAt,{dateStyle:'medium',timeStyle:'short'})):'Live data is not connected yet.'}</p>${data?.refreshPolicy==='match-times'?`<p>Automatic updates run around each match. No ongoing background checks.${data.nextRefreshAt?' Next update: '+e(date(data.nextRefreshAt,{dateStyle:'medium',timeStyle:'short'}))+'.':''}</p>`:''}<button class="secondary" data-action="refresh" ${refreshing?'disabled':''}>${icon('refresh')} ${refreshing?'Refreshing…':'Refresh saved fixtures'}</button><p class="refresh-status" role="status">${e(refreshStatus)}</p><p class="sheet-note">Barça Matchday · 2.6.1</p></div><div class="setting-card floating-card"><h2>Make it a Home Screen app</h2><p>Open in Safari → Share → Add to Home Screen. Your saved fixtures stay available offline.</p></div><div class="setting-card floating-card"><h2>Credits</h2><p>Home posters rotate through the supplied Camp Nou photo collection. Away stadium photographs come from Wikimedia Commons; use Photo credit for the photographer, licence and original file. The current match venue is shown separately when supplied.</p><p>An independent Barça companion. Club crests come from the fixture provider. Competition marks come from Wikimedia Commons or the provider.</p><p>${Object.entries(COMPETITION_BADGES).map(([code,badge])=>`<a class="inline-link" href="${e(badge.source)}" target="_blank" rel="noopener">${code}: ${e(badge.author)} · ${e(badge.license)}</a>`).join('<br>')}</p><p>Player photos come from Wikimedia Commons. Open a player profile for the photographer, licence and original file.</p><p><a class="inline-link" href="https://www.football-data.org" target="_blank" rel="noopener">Football data provided by the Football-Data.org API</a></p><p>Atmosphere photo: Camp Nou (2011), <a class="inline-link" href="https://commons.wikimedia.org/wiki/File:Campnoupano2011.jpg" target="_blank" rel="noopener">Jackpollock / Wikimedia Commons</a>, public domain. Historical artwork; match venue is shown separately.</p></div></section>`;}
+function renderSettings(){return `<section class="content">${pageHeading('YOUR MATCHDAY','Settings')}${posterAppearanceSettings()}${barAppearanceSettings()}${photoSettings()}${notificationCard()}<div class="setting-card floating-card"><h2>iPhone Calendar</h2><p>Subscribe for fixture changes, or add a single match from its details.</p><button class="primary" data-action="calendar">${icon('calendar')} Calendar subscription</button></div><div class="setting-card floating-card"><h2>Time display</h2><label for="time-format">Time format</label><select id="time-format"><option value="24" ${timeFormat==='24'?'selected':''}>24-hour (20:30)</option><option value="12" ${timeFormat==='12'?'selected':''}>12-hour (8:30 PM)</option></select><label for="timezone">Display times in</label><select id="timezone"><option value="local" ${timezone==='local'?'selected':''}>Automatic — phone (${e(deviceTimezone())})</option>${TIME_ZONES.map(([zone,label])=>`<option value="${zone}" ${timezone===zone?'selected':''}>${e(label)}</option>`).join('')}</select><p>Automatic follows your phone’s timezone. Manual choices include local daylight saving changes.</p><p class="sheet-note">Apple Calendar follows your phone’s calendar settings.</p></div><div class="setting-card floating-card"><h2>Data & coverage</h2><p>La Liga and Champions League. Scores and schedules may be delayed. Copa del Rey is outside the free provider’s coverage.</p><a class="inline-link" href="https://www.fcbarcelona.com/en/football/first-team/schedule" target="_blank" rel="noopener">Official Barça calendar, including Copa del Rey ${icon('external')}</a><p>${data?.demo?'Illustrative sample fixtures.':data?.checkedAt?'Last checked '+e(date(data.checkedAt,{dateStyle:'medium',timeStyle:'short'})):'Live data is not connected yet.'}</p>${data?.refreshPolicy==='match-times'?`<p>Automatic updates run around each match. No ongoing background checks.${data.nextRefreshAt?' Next update: '+e(date(data.nextRefreshAt,{dateStyle:'medium',timeStyle:'short'}))+'.':''}</p>`:''}<button class="secondary" data-action="refresh" ${refreshing?'disabled':''}>${icon('refresh')} ${refreshing?'Refreshing…':'Refresh saved fixtures'}</button><p class="refresh-status" role="status">${e(refreshStatus)}</p><p class="sheet-note">Barça Matchday · 2.7.0</p></div><div class="setting-card floating-card"><h2>Make it a Home Screen app</h2><p>Open in Safari → Share → Add to Home Screen. Your saved fixtures stay available offline.</p></div><div class="setting-card floating-card"><h2>Credits</h2><p>Home posters rotate through the supplied Camp Nou photo collection. Away stadium photographs come from Wikimedia Commons; use Photo credit for the photographer, licence and original file. The current match venue is shown separately when supplied.</p><p>An independent Barça companion. Club crests come from the fixture provider. Competition marks come from Wikimedia Commons or the provider.</p><p>${Object.entries(COMPETITION_BADGES).map(([code,badge])=>`<a class="inline-link" href="${e(badge.source)}" target="_blank" rel="noopener">${code}: ${e(badge.author)} · ${e(badge.license)}</a>`).join('<br>')}</p><p>Player photos come from Wikimedia Commons. Open a player profile for the photographer, licence and original file.</p><p><a class="inline-link" href="https://www.football-data.org" target="_blank" rel="noopener">Football data provided by the Football-Data.org API</a></p><p>Atmosphere photo: Camp Nou (2011), <a class="inline-link" href="https://commons.wikimedia.org/wiki/File:Campnoupano2011.jpg" target="_blank" rel="noopener">Jackpollock / Wikimedia Commons</a>, public domain. Historical artwork; match venue is shown separately.</p></div></section>`;}
 function emptyView(){return `<section class="content">${pageHeading('MATCHDAY, MADE SIMPLE','Your next 90 minutes.')}<div class="setting-card floating-card"><h2>Waiting for the next fixture</h2><p>Once fixture data is connected, the next tracked match will appear here.</p><button class="secondary" data-action="refresh">${icon('refresh')} Refresh fixtures</button></div>${calendarBanner()}</section>`;}
 function render(){
+  applyPosterAppearance();
   $('.bottom-nav').innerHTML=[['match','home','Home'],['fixtures','list','Fixtures'],['calendar','calendar','Calendar'],['settings','settings','Settings']].map(([key,ico,label])=>`<a href="#${key}" ${(key==='match'?primaryPages.includes(page):page===key)?'aria-current="page"':''}>${icon(ico)}<span>${label}</span></a>`).join('');
   applyBarAppearance();
   $('#section-tabs').hidden=!primaryPages.includes(page);
@@ -341,7 +355,7 @@ async function manualRefresh(){
 async function loadTeam(){
   if(teamRefreshing)return;teamRefreshing=true;if(page==='squad'&&!teamData)render();
   try{const response=await fetch('/api/team',{cache:'no-store',signal:AbortSignal.timeout(10000)});if(!response.ok)throw new Error();const loaded=await response.json();if(loaded.schemaVersion!==1||!Array.isArray(loaded.squad))throw new Error();teamData=loaded;teamFailed=!!loaded.offline||!!loaded.refreshFailed;try{localStorage.setItem('cartel-team',JSON.stringify(loaded));}catch{}}
-  catch{teamFailed=true;}finally{teamRefreshing=false;if(page==='squad')render();}
+  catch{teamFailed=true;}finally{teamRefreshing=false;if(page==='squad')render();const section=$('#match-lineup-data'),f=data?.fixtures.find(f=>f.id===section?.dataset.matchId);if(f)updateLineupDetails(f,cachedSummary(f));}
 }
 let sheetScrollPosition=null;
 function sheet(title,body){
@@ -363,14 +377,20 @@ function cachedSummary(f){
  if(!summaryCache.has(f.id))try{const saved=JSON.parse(localStorage.getItem('cartel-summary-'+f.id));if(saved?.schemaVersion===1&&saved.matchId===f.id)summaryCache.set(f.id,{...saved,stale:true});}catch{}
  return summaryCache.get(f.id);
 }
+function updateLineupDetails(f,payload,options={}){
+ const section=$('#match-lineup-data');if(section?.dataset.matchId!==f.id||!$('#sheet').open)return;
+ section.innerHTML=lineupPanel(f,payload,{side:section.dataset.side,roster:teamData?.squad||[],...options});
+}
 function updateOpenMatchDetails(fetchMissing=true){
  const section=$('#match-detail-data');if(!section||!$('#sheet').open)return;
- const f=data?.fixtures.find(f=>f.id===section.dataset.matchId);if(!f||!matchHasSummary(f))return;
+ const f=data?.fixtures.find(f=>f.id===section.dataset.matchId);if(!f)return;
+ const lineup=cachedSummary(f);updateLineupDetails(f,lineup,{loading:summaryPending.has(f.id)});
+ if(!matchHasSummary(f)){if(fetchMissing&&!summaryPending.has(f.id)&&(!lineup||Date.now()-Date.parse(lineup.checkedAt)>=120000))loadSummary(f);return;}
  const payload=cachedSummary(f);section.dataset.summary='true';section.classList.add('match-summary-card');section.setAttribute('aria-label','Match summary');
  section.innerHTML=matchSummaryPanel(f,payload,{loading:summaryPending.has(f.id)});
  const status=$('#match-detail-status');if(status)status.textContent=stateLabel(f);
  const complete=payload?.stats?.length&&(payload?.scorers?.length||f.score?.home===0&&f.score?.away===0);
- const ttl=['FINISHED','AWARDED'].includes(f.status)&&complete?6*3600000:55000;
+ const ttl=['FINISHED','AWARDED'].includes(f.status)&&complete?6*3600000:18000;
  if(fetchMissing&&!summaryPending.has(f.id)&&(!payload||!Number.isFinite(Date.parse(payload.checkedAt))||Date.now()-Date.parse(payload.checkedAt)>=ttl||f.source==='FC Barcelona'&&Date.parse(f.sourceUpdatedAt)>Date.parse(payload.checkedAt)))loadSummary(f);
 }
 async function loadSummary(f){
@@ -385,13 +405,14 @@ async function loadSummary(f){
    const current=data?.fixtures.find(record=>record.id===f.id);
    if(current&&current.kickoffUtc===f.kickoffUtc&&['IN_PLAY','PAUSED','FINISHED','TIMED','POSTPONED'].includes(payload.status)&&!(current.status==='FINISHED'&&payload.status!=='FINISHED')){
     current.status=payload.status;if(Number.isInteger(payload.score?.home)&&Number.isInteger(payload.score?.away))current.score={...payload.score,penalties:payload.score.penalties||current.score?.penalties||null};
-    current.matchClock=payload.clock;current.source=payload.source;current.sourceUpdatedAt=payload.checkedAt;if(payload.venue)current.venue=payload.venue;
+    current.matchClock=payload.clock;current.source=payload.source;current.sourceUpdatedAt=payload.checkedAt;current.lineupsAvailable=payload.lineups?.some(team=>team.confirmed)||false;if(payload.status==='FINISHED'&&Date.now()-Date.parse(current.kickoffUtc)<4*3600000)current.summaryFinalAt=current.summaryFinalAt||payload.checkedAt;if(payload.venue)current.venue=payload.venue;
     try{localStorage.setItem('cartel-snapshot',JSON.stringify(data));}catch{}render();
    }
   }
  }catch{failed=true;}finally{
   summaryPending.delete(f.id);updateOpenMatchDetails(false);
-  const section=$('#match-detail-data');if(failed&&section?.dataset.matchId===f.id&&$('#sheet').open)section.innerHTML=matchSummaryPanel(data.fixtures.find(record=>record.id===f.id)||f,summaryCache.get(f.id),{failed:true});
+  updateLineupDetails(f,summaryCache.get(f.id),{failed});
+  const section=$('#match-detail-data');if(failed&&section?.dataset.matchId===f.id&&$('#sheet').open&&matchHasSummary(f))section.innerHTML=matchSummaryPanel(data.fixtures.find(record=>record.id===f.id)||f,summaryCache.get(f.id),{failed:true});
  }
 }
 let historyCache=new Map();
@@ -414,8 +435,8 @@ function showPoster(id){const f=data?.fixtures.find(f=>f.id===id);if(!f)return;s
 function details(id){const f=data?.fixtures.find(f=>f.id===id);if(!f)return;
   const canAdd=(f.timeConfirmed||f.status==='SCHEDULED')&&!['CANCELLED','POSTPONED'].includes(f.status)&&!data.demo;
   if(!historyCache.has(id))try{const cached=JSON.parse(localStorage.getItem('cartel-history-'+id));if(cached?.matchId===id&&cached.schemaVersion===1)historyCache.set(id,{...cached,stale:true});}catch{}
-  sheet('Match details',`<p class="sheet-kicker">${e(f.competitionName)} / ${e(f.round)}</p><div class="duel">${shield(f.homeTeam)}<span class="versus">VS</span>${shield(f.awayTeam)}</div><h3 class="detail-title match-detail-title"><span>${e(f.homeTeam.name)}</span><small>vs</small><span>${e(f.awayTeam.name)}</span></h3><button class="poster-link" data-poster="${e(f.id)}">View ${e(place(f).toLowerCase())} poster ${icon('arrow')}</button><p class="detail-kickoff">${e(fixtureWhen(f))} · ${e(place(f))}</p><section class="h2h-card ${matchHasSummary(f)?'match-summary-card':''}" id="match-detail-data" data-match-id="${e(f.id)}" data-summary="${matchHasSummary(f)}" aria-label="${matchHasSummary(f)?'Match summary':'Recent meetings between the teams'}">${matchHasSummary(f)?matchSummaryPanel(f,summaryCache.get(id),{loading:true}):historyPanel(f,historyCache.get(id),true)}</section><dl class="details-grid"><div><dt>KICKOFF</dt><dd>${e(fixtureWhen(f))}</dd></div><div><dt>TIMEZONE</dt><dd>${e(tz())}</dd></div><div><dt>VENUE</dt><dd>${e(venueLabel(f))}</dd></div><div><dt>STATUS</dt><dd id="match-detail-status">${e(stateLabel(f))}</dd></div></dl>${venueNote(f)}${canAdd?`<a class="primary" href="/calendar/match/${encodeURIComponent(f.id)}.ics">${icon('calendar')} Add this match</a>`:'<button class="primary" disabled>Add this match</button>'}<p class="sheet-note">A single-match import does not stay in sync. ${data.demo?'Calendar exports are disabled for sample fixtures.':!f.timeConfirmed?'Pending kickoff: exported as an all-day event.':''}</p><button class="secondary" data-action="calendar">Subscribe to tracked fixtures</button><p class="sheet-note">Calendar end times are estimated two-hour placeholders. They do not confirm when the match finishes.</p>`);
-  if(matchHasSummary(f))loadSummary(f);else loadHistory(f);
+  sheet('Match details',`<p class="sheet-kicker">${e(f.competitionName)} / ${e(f.round)}</p><div class="duel">${shield(f.homeTeam)}<span class="versus">VS</span>${shield(f.awayTeam)}</div><h3 class="detail-title match-detail-title"><span>${e(f.homeTeam.name)}</span><small>vs</small><span>${e(f.awayTeam.name)}</span></h3><button class="poster-link" data-poster="${e(f.id)}">View ${e(place(f).toLowerCase())} poster ${icon('arrow')}</button><p class="detail-kickoff">${e(fixtureWhen(f))} · ${e(place(f))}</p><section class="lineup-card floating-card" id="match-lineup-data" data-match-id="${e(f.id)}" aria-label="Match lineup">${lineupPanel(f,cachedSummary(f),{roster:teamData?.squad||[],loading:true})}</section><section class="h2h-card ${matchHasSummary(f)?'match-summary-card':''}" id="match-detail-data" data-match-id="${e(f.id)}" data-summary="${matchHasSummary(f)}" aria-label="${matchHasSummary(f)?'Match summary':'Recent meetings between the teams'}">${matchHasSummary(f)?matchSummaryPanel(f,summaryCache.get(id),{loading:true}):historyPanel(f,historyCache.get(id),true)}</section><dl class="details-grid"><div><dt>KICKOFF</dt><dd>${e(fixtureWhen(f))}</dd></div><div><dt>TIMEZONE</dt><dd>${e(tz())}</dd></div><div><dt>VENUE</dt><dd>${e(venueLabel(f))}</dd></div><div><dt>STATUS</dt><dd id="match-detail-status">${e(stateLabel(f))}</dd></div></dl>${venueNote(f)}${canAdd?`<a class="primary" href="/calendar/match/${encodeURIComponent(f.id)}.ics">${icon('calendar')} Add this match</a>`:'<button class="primary" disabled>Add this match</button>'}<p class="sheet-note">A single-match import does not stay in sync. ${data.demo?'Calendar exports are disabled for sample fixtures.':!f.timeConfirmed?'Pending kickoff: exported as an all-day event.':''}</p><button class="secondary" data-action="calendar">Subscribe to tracked fixtures</button><p class="sheet-note">Calendar end times are estimated two-hour placeholders. They do not confirm when the match finishes.</p>`);
+  loadSummary(f);if(!matchHasSummary(f))loadHistory(f);if(!teamData)loadTeam();
 }
 
 async function shareMatch(id){
@@ -428,6 +449,8 @@ async function shareMatch(id){
 }
 document.addEventListener('click',async event=>{
   const target=event.target.closest('button,a');if(!target)return;
+  if(target.dataset.lineupTeam){const section=$('#match-lineup-data'),f=data?.fixtures.find(f=>f.id===section?.dataset.matchId);if(f){section.dataset.side=target.dataset.lineupTeam;updateLineupDetails(f,cachedSummary(f));section.querySelector(`[data-lineup-team="${target.dataset.lineupTeam}"]`)?.focus({preventScroll:true});}}
+  if(target.dataset.action==='reset-poster-appearance'){posterPref=posterPreferences(null);try{localStorage.removeItem('barca-poster-appearance');posterPrefSaved=true;}catch{posterPrefSaved=false;}render();}
   if(target.dataset.match)details(target.dataset.match);
   if(target.dataset.photoUse)await updatePhotoSettings(()=>savePhotoPreferences({selected:target.dataset.photoUse,excluded:photoLibrary.preferences.excluded.filter(id=>id!==target.dataset.photoUse)}));
   if(target.dataset.photoRemove)await updatePhotoSettings(()=>removeHomePhoto(target.dataset.photoRemove));
@@ -462,7 +485,8 @@ document.addEventListener('click',async event=>{
   if(action==='search'){fixtureView='upcoming';location.hash='fixtures';if(page==='fixtures')render();requestAnimationFrame(()=>$('#fixture-search')?.focus());}
   if(action==='copy-url'){try{await navigator.clipboard.writeText($('#calendar-url').value);toast('Calendar link copied');}catch{$('#calendar-url').focus();$('#calendar-url').select();toast('Select and copy the calendar link');}}
 });
-document.addEventListener('input',event=>{if(event.target.id==='nav-transparency'||event.target.id==='nav-clarity'){if(event.target.id==='nav-transparency')barTransparency=barPercent(Number(event.target.value));else barClarity=barPercent(Number(event.target.value));applyBarAppearance();}if(event.target.id==='fixture-search'){query=event.target.value;$('#fixture-list').innerHTML=fixtureList();}});
+document.addEventListener('input',event=>{
+ if(event.target.id==='poster-text-size'||event.target.id==='poster-transparency'){const key=event.target.id==='poster-text-size'?'textSize':'transparency';posterPref=posterPreferences({...posterPref,[key]:Number(event.target.value)});try{localStorage.setItem('barca-poster-appearance',JSON.stringify(posterPref));posterPrefSaved=true;}catch{posterPrefSaved=false;}applyPosterAppearance();}if(event.target.id==='nav-transparency'||event.target.id==='nav-clarity'){if(event.target.id==='nav-transparency')barTransparency=barPercent(Number(event.target.value));else barClarity=barPercent(Number(event.target.value));applyBarAppearance();}if(event.target.id==='fixture-search'){query=event.target.value;$('#fixture-list').innerHTML=fixtureList();}});
 document.addEventListener('change',async event=>{
   if(event.target.id==='nav-liquid-glass'){barLiquidGlass=event.target.checked;saveBarAppearance();}
   if(event.target.id==='nav-transparency'||event.target.id==='nav-clarity'){if(event.target.id==='nav-transparency')barTransparency=barPercent(Number(event.target.value));else barClarity=barPercent(Number(event.target.value));saveBarAppearance();}
@@ -519,9 +543,9 @@ function scheduleFixtureRead(){
  let at=Date.parse(data?.nextRefreshAt);
  if(!Number.isFinite(at)){
   const active=data?.fixtures?.some(f=>f.timeConfirmed&&['TIMED','IN_PLAY','PAUSED','SUSPENDED'].includes(f.status)&&Date.now()>=Date.parse(f.kickoffUtc)-120000&&Date.now()<Date.parse(f.kickoffUtc)+3*3600000);
-  if(!active)return;at=Date.now()+60000;
+  if(!active)return;at=Date.now()+20000;
  }
- const delay=Math.max(10000,at-Date.now()+5000);
+ const delay=Math.max(10000,at-Date.now()+2000);
  fixtureReadTimer=setTimeout(()=>{if(delay>2147483647)scheduleFixtureRead();else if(!document.hidden)refresh();},Math.min(delay,2147483647));
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(fixtureReadTimer);fixtureReadTimer=null;}else scheduleFixtureRead();});
