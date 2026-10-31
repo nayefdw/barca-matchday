@@ -30,3 +30,10 @@ test('match squad uses a closed disclosure and renders on/off substitutions safe
  const html=lineupPanel(fixture,{lineups:normalizeLineups(record),substitutions:[{team:'home',minute:"61'",direction:'on',name:'New player'}]});
  assert.ok(html.includes('<details class="lineup-disclosure">'));assert.ok(html.includes('↗ On'));assert.ok(html.includes('New player'));assert.ok(!html.includes('lineup-disclosure" open'));
 });
+test('photo markers attach substitutions to the correct player and team, including a substitute going off later',()=>{
+ const lineups=normalizeLineups(record),substitutions=[{team:'home',personId:1,name:'Wrong display name',direction:'off',minute:"61'"},{team:'away',personId:2,name:'Player 2',direction:'off',minute:"62'"},{team:'home',personId:20,name:'Substitute',direction:'on',minute:"61'"},{team:'home',personId:20,name:'Substitute',direction:'off',minute:"89'"}];
+ const html=lineupPanel(fixture,{lineups,substitutions});
+ assert.equal((html.match(/class="player-sub-marker sub-/g)||[]).length,3);
+ assert.ok(html.includes('Joan García substituted off at 61&#39;'));assert.ok(html.includes('Substitute substituted on at 61&#39;'));assert.ok(html.includes('Substitute substituted off at 89&#39;'));
+ const legacy=lineupPanel(fixture,{lineups,substitutions:[{team:'home',name:'Joan García',direction:'off',minute:"60'"}]});assert.ok(legacy.includes('Joan García substituted off at 60&#39;'));
+});

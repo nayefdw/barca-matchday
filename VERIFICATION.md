@@ -1,5 +1,11 @@
 # Verification · 31 October 2026
 
+## Version 2.8.1 · 31 October 2026
+
+15 targeted lineup and summary checks pass. New coverage verifies portrait marker identity, exclusion of the other team's events, incoming and outgoing markers for the same substitute, and matching older name-only cached events. All marker text is escaped. Browser use remains disabled, so no manual visual/device verification was performed.
+
+Published Worker: `4c9f0157-c250-4512-9a5d-0887e090308c`, shell v31. Production app.js, lineup.js, styles.css and sw.js hashes match tested source.
+
 ## Version 2.8.0 · 31 October 2026
 
 124 checks pass, including a deliberate Windows mouse drag, short pull, cancellation, closed squad disclosure, safe substitution rendering, correct event/team mapping, one-minute scores and two-minute statistics. Existing alarm/reminder retry and deduplication checks pass after adding five-minute pre-match lineup spacing. Syntax checks pass. 27 original club portraits are mapped from the official squad page; no Google image thumbnail URLs are used. Credits remain in Settings with per-image source/license metadata. Browser use is disabled in Work settings, so native Windows/phone gestures and new visual rendering have not been manually verified in this release.

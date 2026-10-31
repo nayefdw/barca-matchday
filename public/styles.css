@@ -729,4 +729,9 @@ html,body { overscroll-behavior-y: none; }
 .match-substitutions {border-top:1px solid var(--line);margin-top:16px;padding-top:12px;}
 .match-substitutions>div {display:grid;grid-template-columns:48px 58px minmax(0,1fr);gap:8px;padding:9px 0;font-size:12px;}
 .sub-on {color:#87e4ba;}.sub-off {color:#ffa2ba;}
+.player-sub-markers {position:absolute;z-index:1;right:-12px;bottom:-7px;display:flex;flex-direction:column;gap:2px;pointer-events:none;}
+.player-sub-marker {display:flex;align-items:center;gap:3px;border-radius:6px;border:1px solid currentColor;padding:2px 4px;background:#0b1725;font-size:9px;line-height:1.2;font-weight:650;white-space:nowrap;box-shadow:0 2px 5px #0006;}
+.player-sub-marker b {font-size:12px;line-height:1;}
+.lineup-portrait:has(.player-sub-markers) {margin-bottom:8px;}
+.lineup-portrait:has(.player-sub-marker+.player-sub-marker) {margin-bottom:23px;}
 html:has(.pull-refresh.pulling) {user-select:none;}

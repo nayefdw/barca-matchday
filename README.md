@@ -2,7 +2,7 @@
 
 A lightweight mobile-first PWA: a stadium match card, searchable fixtures and results, a monthly calendar, News / Squad / Stats sections, and an iPhone calendar subscription. Plain HTML, CSS and JavaScript; Cloudflare Worker + KV public cache and a SQLite-backed match-time scheduler.
 
-## Design and features · version 2.8.0
+## Design and features · version 2.8.1
 
 - A blended translucent header with an original blue/red monogram, Barça / Matchday branding, and no Cartel word in the banner. Floating glass cards, soft blue/garnet lighting, blue/red active-tab accents and a floating bottom navigation bar.
 - Home: next match with full club names and real crests, prominent kickoff, glass days/hours/minutes/seconds countdown, LIVE/half-time status and the latest delayed score, Previous / Then / After fixture strip, recent form and match sharing. Sharing uses the device share sheet or copy fallback; a public real-data deployment includes a match link.
@@ -34,6 +34,10 @@ npm test
 ```
 
 The preview uses clearly labelled **illustrative fixtures**, anchored to the day it starts. It is not the real Barcelona schedule. Calendar subscriptions and single-event exports are disabled for sample data. `node dev/server.js --empty` previews the initial state with no data connected. `node dev/server.js --live-preview` displays an explicitly illustrative 2–1 live poster; this never touches production data.
+
+## Release 2.8.1 · substitution markers on portraits
+
+Substitution arrows and minutes overlay the player portrait (or shirt fallback) in the pitch and substitute list. Green on and red off markers include accessible labels and text, so color is not the only signal. A substitute who later goes off retains both markers. Official player IDs are used when present; older cached events match by normalized name within the selected team. The event list remains available. Fifteen targeted lineup/summary checks pass, covering correct team/player mapping, legacy cache compatibility and on-then-off events. Browser preview remains disabled, so visual and physical device testing are not claimed. Shell v31 distributes the update.
 
 ## Release 2.8.0 · compact squads, Windows refresh and quieter updates
 
