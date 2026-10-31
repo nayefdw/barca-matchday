@@ -1,3 +1,4 @@
+import {googlePortraitFor} from './google-portraits.js';
 import {playerArticle} from './photos.js';
 export const PLAYER_PORTRAITS=[
   {
@@ -218,4 +219,6 @@ export const PLAYER_PORTRAITS=[
   }
 ];
 const key=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
-export function portraitFor(name,officialId){return PLAYER_PORTRAITS.find(p=>officialId&&p.id===officialId)||PLAYER_PORTRAITS.find(p=>key(p.name)===key(name)||playerArticle(name)&&playerArticle(name)===playerArticle(p.name));}
+export function clubPortraitFor(name,officialId){return PLAYER_PORTRAITS.find(p=>officialId&&p.id===officialId)||PLAYER_PORTRAITS.find(p=>key(p.name)===key(name)||playerArticle(name)&&playerArticle(name)===playerArticle(p.name));}
+
+export function portraitFor(name,officialId){const club=clubPortraitFor(name,officialId);return googlePortraitFor(club?.name||name)||googlePortraitFor(name)||club;}

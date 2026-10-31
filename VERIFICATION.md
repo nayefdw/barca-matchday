@@ -1,5 +1,11 @@
 # Verification · 31 October 2026
 
+## Version 2.8.2 · 31 October 2026
+
+The side browser successfully displayed the exact Google lineup card from the screenshot. 38 player names and corresponding licensed-image URLs were captured from the rendered DOM, covering starters and substitutes from both teams. Rating/age/country labels and missing-image placeholders were excluded. All 126 automated checks pass; new checks verify biography aliases, Google portrait priority, retained club fallback and rejection of spoofed hosts/unrelated image paths. App/module syntax checks pass. The local side-browser preview connection timed out; public browser verification follows deployment.
+
+Published Worker: `13440f28-769d-458f-a4be-eac13911bd79`, shell v32. All six changed public files match tested hashes; all 38 portrait URLs respond HTTP 200 with image content types. The published side-browser lineup displays nine loaded Google portraits and two loaded club fallbacks in the checked Betis XI, with substitution badges preserved. The Lamine Yamal profile also displays the exact matching Google URL and a successfully decoded image. Screenshot: outputs/barca-google-headshots.png. No notification was sent and no polling interval changed.
+
 ## Version 2.8.1 · 31 October 2026
 
 15 targeted lineup and summary checks pass. New coverage verifies portrait marker identity, exclusion of the other team's events, incoming and outgoing markers for the same substitute, and matching older name-only cached events. All marker text is escaped. Browser use remains disabled, so no manual visual/device verification was performed.

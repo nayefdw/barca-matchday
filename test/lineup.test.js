@@ -3,6 +3,15 @@ import assert from 'node:assert/strict';
 import {normalizeLineups} from '../worker/match-summary.js';
 import {lineupPanel} from '../public/lineup.js';
 import {posterPreferences,posterStyle} from '../public/poster-preferences.js';
+import {googlePortraitFor} from '../public/google-portraits.js';
+import {portraitFor,clubPortraitFor} from '../public/player-portraits.js';
+import {safePhoto} from '../public/photos.js';
+test('Google portraits resolve exact identities and biography aliases while rejecting untrusted image URLs',()=>{
+ const photo=googlePortraitFor('Lamine Yamal Nasraoui Ebana');assert.ok(photo.url.startsWith('https://t0.gstatic.com/licensed-image?q=tbn:'));
+ assert.equal(portraitFor('Lamine Yamal').url,photo.url);assert.ok(clubPortraitFor('Lamine Yamal').url.includes('fcbarcelona.com/photo-resources/'));
+ assert.equal(safePhoto(photo.url),photo.url);assert.equal(safePhoto(photo.url.replace('t0.gstatic.com','t0.gstatic.com.evil.test')),null);assert.equal(safePhoto(photo.url.replace('/licensed-image','/unrelated')),null);
+ assert.equal(googlePortraitFor('Unmapped footballer'),undefined);
+});
 const players=Array.from({length:11},(_,i)=>({id:i+1,name:{display:i===0?'Joan García':'Player '+(i+1)},matchShirtNumber:i+1,matchPosition:i===0?'G':i<5?'D':i<8?'M':'F',captain:i===3}));
 const record={teams:[{team:{id:49,name:'FC Barcelona'}},{team:{id:44,name:'Opponent'}}],teamLists:[{teamId:49,lineup:players,substitutes:[{id:20,name:{display:'Substitute'},matchShirtNumber:20,matchPosition:'F'}]}]};
 const fixture={homeTeam:{id:81,name:'FC Barcelona'},awayTeam:{id:82,name:'Opponent'}};

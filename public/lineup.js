@@ -1,4 +1,5 @@
-import {portraitFor} from './player-portraits.js';
+import {googlePortraitFor} from './google-portraits.js';
+import {portraitFor,clubPortraitFor} from './player-portraits.js';
 import {safePhoto} from './photos.js';
 const e=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const key=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -7,11 +8,12 @@ export function lineupPanel(f,payload,{side,roster=[],loading=false,failed=false
  const selected=teams.find(team=>team.side===(side||barcaSide))||teams[0];
  const person=(p,pitch=false)=>{
   const known=selected?.side===barcaSide?roster.find(player=>key(player.name)===key(p.name)):null;
-  const photo=safePhoto((selected?.side===barcaSide?portraitFor(p.name,p.id):null)?.url||known?.photo?.url);
+  const photo=safePhoto(googlePortraitFor(p.name)?.url||(selected?.side===barcaSide?portraitFor(p.name,p.id):null)?.url||known?.photo?.url);
+  const fallback=safePhoto((selected?.side===barcaSide?clubPortraitFor(p.name,p.id):null)?.url||known?.photo?.url);
   const shirt=`<span class="lineup-shirt" aria-hidden="true">${e(p.number??'–')}</span>`;
   const changes=(payload?.substitutions||[]).filter(event=>event.team===selected?.side&&['on','off'].includes(event.direction)&&(Number.isInteger(event.personId)?event.personId===p.id:key(event.name)===key(p.name)));
   const markers=changes.length?`<span class="player-sub-markers">${changes.map(event=>`<span class="player-sub-marker sub-${event.direction}" role="img" aria-label="${e(p.name)} substituted ${event.direction} at ${e(event.minute)}" title="${e(event.direction==='on'?'Came on':'Went off')} ${e(event.minute)}"><b aria-hidden="true">${event.direction==='on'?'↗':'↘'}</b><span aria-hidden="true">${e(event.minute)}</span></span>`).join('')}</span>`:'';
-  return `<div class="${pitch?'pitch-player':'bench-player'}"><span class="lineup-portrait">${shirt}${photo?`<img class="lineup-photo" src="${e(photo)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:''}${markers}</span><span class="lineup-player-name">${e(p.name)}${p.captain?' <b aria-label="Captain">C</b>':''}</span>${photo?`<small>#${e(p.number??'–')}</small>`:''}</div>`;
+  return `<div class="${pitch?'pitch-player':'bench-player'}"><span class="lineup-portrait">${shirt}${photo?`<img class="lineup-photo" src="${e(photo)}"${fallback&&fallback!==photo?` data-photo-fallback="${e(fallback)}"`:''} alt="" loading="lazy" referrerpolicy="no-referrer">`:''}${markers}</span><span class="lineup-player-name">${e(p.name)}${p.captain?' <b aria-label="Captain">C</b>':''}</span>${photo?`<small>#${e(p.number??'–')}</small>`:''}</div>`;
  };
  const groups=selected?['G','D','M','F'].map(position=>({position,players:selected.starters.filter(p=>p.position===position)})):[];
  const pitch=selected?.confirmed&&groups[0]?.players.length===1&&groups.reduce((sum,row)=>sum+row.players.length,0)===11&&groups.every(row=>row.players.length<=5);
