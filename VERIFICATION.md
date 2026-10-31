@@ -1,5 +1,11 @@
 # Verification · 31 October 2026
 
+## Version 2.8.3 · 31 October 2026
+
+129 automated checks pass. Dialog gesture tests verify deliberate Windows mouse dismissal, initial zero-movement pointer events, short/horizontal/cancelled drags, ignored interactive controls and preserving a scrolled sheet. Summary checks verify one substitution section below the score and before statistics; lineup tests verify its removal from the squad while retaining photo markers. Existing photo mappings, startup cache and reminder/scheduler checks pass.
+
+Published Worker: `d634ca7e-69c1-49a5-acfc-b864ec2a7fc4`, shell v34. Six changed public file hashes match local source. Side-browser mouse dragging from the top handle closed the dialog and cleared its transform. The live DOM has exactly one DETAILS substitution list, closed by default, within the match summary and none in the squad. Opening and closing its summary works. Thirteen summary/gesture checks were repeated after the collapse change; the collapse assertion also passes. Screenshot: outputs/barca-collapsible-substitutions.png. Physical touch-device behavior was not tested.
+
 ## Version 2.8.2 · 31 October 2026
 
 The side browser successfully displayed the exact Google lineup card from the screenshot. 38 player names and corresponding licensed-image URLs were captured from the rendered DOM, covering starters and substitutes from both teams. Rating/age/country labels and missing-image placeholders were excluded. All 126 automated checks pass; new checks verify biography aliases, Google portrait priority, retained club fallback and rejection of spoofed hosts/unrelated image paths. App/module syntax checks pass. The local side-browser preview connection timed out; public browser verification follows deployment.

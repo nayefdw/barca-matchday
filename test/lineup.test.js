@@ -37,7 +37,7 @@ test('poster settings reject corrupt stored values and clamp size and transparen
 });
 test('match squad uses a closed disclosure and renders on/off substitutions safely',()=>{
  const html=lineupPanel(fixture,{lineups:normalizeLineups(record),substitutions:[{team:'home',minute:"61'",direction:'on',name:'New player'}]});
- assert.ok(html.includes('<details class="lineup-disclosure">'));assert.ok(html.includes('↗ On'));assert.ok(html.includes('New player'));assert.ok(!html.includes('lineup-disclosure" open'));
+ assert.ok(html.includes('<details class="lineup-disclosure">'));assert.ok(!html.includes('class="match-substitutions"'));assert.ok(!html.includes('New player'));assert.ok(!html.includes('lineup-disclosure" open'));
 });
 test('photo markers attach substitutions to the correct player and team, including a substitute going off later',()=>{
  const lineups=normalizeLineups(record),substitutions=[{team:'home',personId:1,name:'Wrong display name',direction:'off',minute:"61'"},{team:'away',personId:2,name:'Player 2',direction:'off',minute:"62'"},{team:'home',personId:20,name:'Substitute',direction:'on',minute:"61'"},{team:'home',personId:20,name:'Substitute',direction:'off',minute:"89'"}];

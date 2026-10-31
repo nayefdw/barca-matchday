@@ -34,6 +34,10 @@ test('substitution events preserve team, player, on/off direction and stoppage t
  const summary=normalizeOfficialSummary(fixture,{...record,events:[{type:'S',description:'ON',personId:8,teamId:49,clock:{label:"90+2'00",secs:5520}},{type:'S',description:'OFF',personId:8,teamId:999,clock:{label:"45'00"}}]},stats,now);
  assert.equal(summary.substitutions.length,1);assert.equal(summary.substitutions[0].team,'home');assert.equal(summary.substitutions[0].direction,'on');assert.equal(summary.substitutions[0].minute,"90+2'");
 });
+test('the substitution list appears once below the score and before match statistics',()=>{
+ const summary=normalizeOfficialSummary(fixture,record,stats,now);summary.substitutions=[{team:'home',name:'Incoming player',direction:'on',minute:"61'"}];
+ const html=matchSummaryPanel(fixture,summary);assert.equal((html.match(/aria-label="Match substitutions"/g)||[]).length,1);assert.ok(html.includes('<details class="match-substitutions" aria-label="Match substitutions">'));assert.ok(!html.includes('class="match-substitutions" open'));assert.ok(html.indexOf('summary-score')<html.indexOf('Match substitutions'));assert.ok(html.indexOf('Match substitutions')<html.indexOf('Match statistics'));assert.ok(html.includes('Incoming player'));
+});
 test('summary overlays preserve identity, reject missing kickoff and cannot downgrade a finished match',()=>{
  const summary=normalizeOfficialSummary(fixture,record,stats,now),updated=applyMatchSummary(fixture,summary,now);
  assert.equal(updated.id,fixture.id);assert.equal(updated.kickoffUtc,fixture.kickoffUtc);assert.equal(updated.source,'FC Barcelona');

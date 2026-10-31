@@ -2,7 +2,7 @@
 
 A lightweight mobile-first PWA: a stadium match card, searchable fixtures and results, a monthly calendar, News / Squad / Stats sections, and an iPhone calendar subscription. Plain HTML, CSS and JavaScript; Cloudflare Worker + KV public cache and a SQLite-backed match-time scheduler.
 
-## Design and features · version 2.8.2
+## Design and features · version 2.8.3
 
 - A blended translucent header with an original blue/red monogram, Barça / Matchday branding, and no Cartel word in the banner. Floating glass cards, soft blue/garnet lighting, blue/red active-tab accents and a floating bottom navigation bar.
 - Home: next match with full club names and real crests, prominent kickoff, glass days/hours/minutes/seconds countdown, LIVE/half-time status and the latest delayed score, Previous / Then / After fixture strip, recent form and match sharing. Sharing uses the device share sheet or copy fallback; a public real-data deployment includes a match link.
@@ -34,6 +34,12 @@ npm test
 ```
 
 The preview uses clearly labelled **illustrative fixtures**, anchored to the day it starts. It is not the real Barcelona schedule. Calendar subscriptions and single-event exports are disabled for sample data. `node dev/server.js --empty` previews the initial state with no data connected. `node dev/server.js --live-preview` displays an explicitly illustrative 2–1 live poster; this never touches production data.
+
+## Release 2.8.3 · drag windows closed and one substitution list
+
+Dialogs support a deliberate downward drag from the handle/title on mouse, pen and touch; Windows mouse/pen also works from noninteractive content when the sheet is at its top. Pointer capture keeps release tracking stable. Short, horizontal, cancelled or interactive-control gestures do not dismiss; scrolled content retains normal scrolling. Close, cancellation and sheet replacement clear the visual transform and capture state, while the existing background scroll restoration remains in charge. Native Close/Escape remain available.
+
+Actual substitutions are in a collapsed-by-default disclosure that retains expansion during updates, listed once in the match summary below the score/scorers and before statistics. The duplicated squad event list is removed, while substitution arrows/minutes remain on player portraits and the substitute roster disclosure remains available. 129 automated checks pass. Shell v34 caches the new sheet gesture module.
 
 ## Release 2.8.2 · exact Google lineup headshots
 

@@ -735,3 +735,12 @@ html,body { overscroll-behavior-y: none; }
 .lineup-portrait:has(.player-sub-markers) {margin-bottom:8px;}
 .lineup-portrait:has(.player-sub-marker+.player-sub-marker) {margin-bottom:23px;}
 html:has(.pull-refresh.pulling) {user-select:none;}
+
+.sheet-drag-zone {height:24px;display:grid;place-items:start center;touch-action:none;cursor:grab;}
+.sheet-drag-zone .handle {margin:0;}
+.sheet-header {touch-action:none;cursor:grab;}
+dialog.sheet-dragging,dialog.sheet-dragging * {cursor:grabbing;user-select:none;}
+.match-substitutions h3 {font-size:16px;margin:0 0 12px;}
+.match-substitutions small {display:block;color:var(--muted);font-size:10px;margin-top:3px;}
+
+.match-substitutions>summary {min-height:44px;cursor:pointer;font-size:16px;font-weight:650;padding-block:10px;}
