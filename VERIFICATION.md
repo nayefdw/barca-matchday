@@ -1,4 +1,10 @@
-# Verification · 20 October 2026
+# Verification · 31 October 2026
+
+## Version 2.8.0 · 31 October 2026
+
+124 checks pass, including a deliberate Windows mouse drag, short pull, cancellation, closed squad disclosure, safe substitution rendering, correct event/team mapping, one-minute scores and two-minute statistics. Existing alarm/reminder retry and deduplication checks pass after adding five-minute pre-match lineup spacing. Syntax checks pass. 27 original club portraits are mapped from the official squad page; no Google image thumbnail URLs are used. Credits remain in Settings with per-image source/license metadata. Browser use is disabled in Work settings, so native Windows/phone gestures and new visual rendering have not been manually verified in this release.
+
+Published Worker: `449cbd02-a4e4-4c3a-9705-81599d62111d`, shell v30. All eight changed public browser assets match local hashes. The production summary for fd-564713 returns 22 on/off substitution events. Three sampled official club portrait URLs return HTTP 200 with image content types. No test push was sent. ESPN's scoreboard responded successfully with a six-second cache header; that alone does not establish live source latency, so it was not substituted for the club feed.
 
 ## Version 2.7.0 · 20 October 2026
 

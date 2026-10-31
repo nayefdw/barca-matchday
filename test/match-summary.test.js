@@ -30,6 +30,10 @@ test('verified summary retains zero statistics, unknown values, added-time goals
  assert.equal(summary.stats.find(row=>row.key==='passAccuracy').home,90);
  assert.equal(normalizeOfficialSummary(fixture,record,{...stats,entity:{...record,id:999}},now).stats.length,0);
 });
+test('substitution events preserve team, player, on/off direction and stoppage time',()=>{
+ const summary=normalizeOfficialSummary(fixture,{...record,events:[{type:'S',description:'ON',personId:8,teamId:49,clock:{label:"90+2'00",secs:5520}},{type:'S',description:'OFF',personId:8,teamId:999,clock:{label:"45'00"}}]},stats,now);
+ assert.equal(summary.substitutions.length,1);assert.equal(summary.substitutions[0].team,'home');assert.equal(summary.substitutions[0].direction,'on');assert.equal(summary.substitutions[0].minute,"90+2'");
+});
 test('summary overlays preserve identity, reject missing kickoff and cannot downgrade a finished match',()=>{
  const summary=normalizeOfficialSummary(fixture,record,stats,now),updated=applyMatchSummary(fixture,summary,now);
  assert.equal(updated.id,fixture.id);assert.equal(updated.kickoffUtc,fixture.kickoffUtc);assert.equal(updated.source,'FC Barcelona');
@@ -51,13 +55,13 @@ test('source outage backs off and preserves a previously verified summary',async
  const result=await loadMatchSummary(env,fixture,{now:now+7*3600000,fetcher});assert.equal(result.stale,true);assert.equal(result.score.home,3);
  await loadMatchSummary(env,fixture,{now:now+7*3600000+60000,fetcher});assert.equal(calls,1);
 });
-test('live scores refresh every twenty seconds while shared statistics refresh once a minute',async()=>{
+test('live scores refresh once a minute while shared statistics refresh every two minutes',async()=>{
  const env={FIXTURES:new KV()},active={...record,status:'L'},local={...fixture,status:'IN_PLAY'};let fixtureCalls=0,statCalls=0;
  const fetcher=async url=>{if(url.includes('/stats/')){statCalls++;return Response.json({...stats,entity:active});}if(url.includes('?teams='))return Response.json({content:[active]});fixtureCalls++;return Response.json(active);};
  await loadMatchSummary(env,local,{now,fetcher});
- await loadMatchSummary(env,local,{now:now+19999,fetcher});assert.equal(fixtureCalls,1);
- await loadMatchSummary(env,local,{now:now+20000,fetcher});assert.equal(fixtureCalls,2);assert.equal(statCalls,1);
- await loadMatchSummary(env,local,{now:now+60000,fetcher});assert.equal(fixtureCalls,3);assert.equal(statCalls,2);
+ await loadMatchSummary(env,local,{now:now+59999,fetcher});assert.equal(fixtureCalls,1);
+ await loadMatchSummary(env,local,{now:now+60000,fetcher});assert.equal(fixtureCalls,2);assert.equal(statCalls,1);
+ await loadMatchSummary(env,local,{now:now+120000,fetcher});assert.equal(fixtureCalls,3);assert.equal(statCalls,2);
 });
 test('summary presentation replaces history, escapes scorer content and never fabricates missing stats',()=>{
  const summary=normalizeOfficialSummary(fixture,record,stats,now);summary.scorers[0].name='<img src=x onerror=alert(1)>';

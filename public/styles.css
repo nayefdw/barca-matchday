@@ -720,3 +720,13 @@ html,body { overscroll-behavior-y: none; }
 .lineup-bench summary {font-size:14px;min-height:44px;display:flex;align-items:center;gap:8px;cursor:pointer;}
 .lineup-bench summary span {color:var(--muted);}
 @media(prefers-reduced-transparency:reduce){.poster-banner .countdown,.poster-banner .hero-actions>:is(.primary,.secondary),.poster-sample-box,.poster-sample-actions>span{background:#142039;backdrop-filter:none;-webkit-backdrop-filter:none;}}
+
+.settings-jumps {display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 24px;}
+.settings-jumps button {min-height:44px;border:1px solid #ffffff20;border-radius:14px;background:#ffffff08;color:var(--cream);padding:8px 12px;font-size:12px;}
+.setting-card {scroll-margin-top:100px;}
+.lineup-disclosure>summary {min-height:48px;cursor:pointer;font-size:17px;font-weight:650;}
+.lineup-disclosure>summary span {display:block;font-size:11px;font-weight:400;color:var(--muted);margin:6px 0 18px;}
+.match-substitutions {border-top:1px solid var(--line);margin-top:16px;padding-top:12px;}
+.match-substitutions>div {display:grid;grid-template-columns:48px 58px minmax(0,1fr);gap:8px;padding:9px 0;font-size:12px;}
+.sub-on {color:#87e4ba;}.sub-off {color:#ffa2ba;}
+html:has(.pull-refresh.pulling) {user-select:none;}

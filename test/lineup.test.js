@@ -26,3 +26,7 @@ test('poster settings reject corrupt stored values and clamp size and transparen
  assert.equal(posterStyle({textSize:120,transparency:100})['--poster-box-alpha'],'0');
  assert.equal(posterStyle({textSize:120,transparency:100})['--poster-scale'],'1.2');
 });
+test('match squad uses a closed disclosure and renders on/off substitutions safely',()=>{
+ const html=lineupPanel(fixture,{lineups:normalizeLineups(record),substitutions:[{team:'home',minute:"61'",direction:'on',name:'New player'}]});
+ assert.ok(html.includes('<details class="lineup-disclosure">'));assert.ok(html.includes('↗ On'));assert.ok(html.includes('New player'));assert.ok(!html.includes('lineup-disclosure" open'));
+});

@@ -39,12 +39,13 @@ export function normalizeOfficialSummary(local,record,statistics,now=Date.now())
  const scorers=(record.events||[]).filter(event=>['G','P','O'].includes(event.type)&&record.teams.some(team=>team.team.id===event.teamId)).map(event=>({
   team:event.teamId===record.teams[0].team.id?'home':'away',name:players.get(event.personId)||'Scorer not supplied',minute:clean(event.clock?.label?.split("'")[0]||'').replace(/^0+(?=\d)/,'')+"'",type:event.type==='O'?'own-goal':event.type==='P'?'penalty':'goal',seconds:Number.isFinite(event.clock?.secs)?event.clock.secs:null
  }));
+ const substitutions=(record.events||[]).filter(event=>event.type==='S'&&['ON','OFF'].includes(event.description)&&record.teams.some(t=>t.team.id===event.teamId)).map(event=>({team:event.teamId===record.teams[0].team.id?'home':'away',name:players.get(event.personId)||'Player not supplied',direction:event.description==='ON'?'on':'off',minute:clean(event.clock?.label?.split("'")[0]||'')+"'",seconds:Number.isFinite(event.clock?.secs)?event.clock.secs:null}));
  const validStats=statistics?.entity?.id===record.id&&matchOfficialFixture(local,[statistics.entity]);
  const statsFor=id=>new Map((validStats?statistics.data?.[id]?.M||[]:[]).filter(row=>typeof row.name==='string'&&Number.isFinite(row.value)&&row.value>=0&&row.value<=1000000).map(row=>[row.name,row.value]));
  const home=statsFor(record.teams[0].team.id),away=statsFor(record.teams[1].team.id);
  const accuracy=stats=>stats.get('total_pass')>0&&stats.has('accurate_pass')?Math.round(stats.get('accurate_pass')/stats.get('total_pass')*1000)/10:null;
  const stats=STAT_DEFS.map(([key,label,name,unit])=>({key,label,unit,home:key==='passAccuracy'?accuracy(home):home.get(name)??null,away:key==='passAccuracy'?accuracy(away):away.get(name)??null})).map(row=>row.unit==='%'?{...row,home:row.home>100?null:row.home,away:row.away>100?null:row.away}:row).filter(row=>row.home!==null||row.away!==null);
- return {schemaVersion:1,matchId:local.id,kickoffUtc:new Date(record.kickoff.millis).toISOString(),status,score:{home:values[0],away:values[1],duration:record.shootout?'PENALTY_SHOOTOUT':record.extraTime?'EXTRA_TIME':'REGULAR',penalties:null},scorers,stats,lineups:normalizeLineups(record),clock:clean(record.clock?.label?.split("'")[0]||''),venue:clean(record.ground?.name)||null,checkedAt:new Date(now).toISOString(),source:'FC Barcelona',sourceUrl:`https://www.fcbarcelona.com/en/matches/${record.id}/match`,officialId:record.id};
+ return {schemaVersion:1,matchId:local.id,kickoffUtc:new Date(record.kickoff.millis).toISOString(),status,score:{home:values[0],away:values[1],duration:record.shootout?'PENALTY_SHOOTOUT':record.extraTime?'EXTRA_TIME':'REGULAR',penalties:null},scorers,substitutions,stats,lineups:normalizeLineups(record),clock:clean(record.clock?.label?.split("'")[0]||''),venue:clean(record.ground?.name)||null,checkedAt:new Date(now).toISOString(),source:'FC Barcelona',sourceUrl:`https://www.fcbarcelona.com/en/matches/${record.id}/match`,officialId:record.id};
 }
 async function readJson(path,fetcher){
  const response=await fetcher(API+path,{headers:{Origin:'https://www.fcbarcelona.com'},signal:AbortSignal.timeout(10000)});
@@ -54,7 +55,7 @@ async function readJson(path,fetcher){
 export async function loadMatchSummary(env,fixture,{now=Date.now(),fetcher=fetch,force=false}={}){
  const summaries=await env.FIXTURES.get(CACHE,'json')||{},saved=summaries[fixture.id];
  const nearKickoff=now>=Date.parse(fixture.kickoffUtc)-2*minute&&now<Date.parse(fixture.kickoffUtc)+3*hour;
- const ttl=['FINISHED','AWARDED'].includes(saved?.status)&&Array.isArray(saved?.lineups)?6*hour:nearKickoff||['IN_PLAY','PAUSED','SUSPENDED'].includes(saved?.status)?20000:2*minute;
+ const ttl=['FINISHED','AWARDED'].includes(saved?.status)&&Array.isArray(saved?.lineups)&&Array.isArray(saved?.substitutions)?6*hour:nearKickoff||['IN_PLAY','PAUSED','SUSPENDED'].includes(saved?.status)?60000:5*minute;
  if(saved&&!force&&now-Date.parse(saved.checkedAt)<ttl)return saved;
  if(saved?.retryAfterAt&&now<Date.parse(saved.retryAfterAt))return saved;
  try{
@@ -66,7 +67,7 @@ export async function loadMatchSummary(env,fixture,{now=Date.now(),fetcher=fetch
   }
   const mapped=matchOfficialFixture(fixture,index.fixtures);if(!mapped)throw new Error('Official match not matched');
   const record=await readJson('/fixtures/'+mapped.id,fetcher);let stats=null;
-  const recentStats=saved?.officialId===mapped.id&&Array.isArray(saved.stats)&&now-Date.parse(saved.statisticsCheckedAt)<minute;
+  const recentStats=saved?.officialId===mapped.id&&Array.isArray(saved.stats)&&now-Date.parse(saved.statisticsCheckedAt)<2*minute;
   if(['L','C'].includes(record.status)&&!recentStats)try{stats=await readJson('/stats/match/'+mapped.id+'?altIds=true',fetcher);}catch{}
   const summary=normalizeOfficialSummary(fixture,record,stats,now);if(!summary)throw new Error('Invalid official match');
   if(stats)summary.statisticsCheckedAt=summary.checkedAt;

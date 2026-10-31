@@ -22,4 +22,24 @@ export function installPullRefresh({indicator,refresh,blocked=()=>false,target=d
   try{await refresh();}finally{busy=false;indicator.classList.remove('refreshing');}
  },{passive:true});
  target.addEventListener('touchcancel',reset,{passive:true});
+ // Mouse/pen dragging on Windows; touch continues through the existing handlers.
+ let pointer=null;
+ target.addEventListener('pointerdown',event=>{
+  if(event.pointerType==='touch'||event.button!==0||busy||blocked()||window.scrollY>1||event.target.closest('button,a,input,textarea,select,summary,[contenteditable]'))return;
+  event.preventDefault();pointer=event.pointerId;start={x:event.clientX,y:event.clientY};
+ });
+ target.addEventListener('pointermove',event=>{
+  if(pointer!==event.pointerId||!start||busy)return;
+  if(blocked()||window.scrollY>1||!(event.buttons&1)){pointer=null;reset();return;}
+  const dy=event.clientY-start.y;if(dy<8||Math.abs(event.clientX-start.x)>dy)return;
+  event.preventDefault();pulling=true;const state=pullProgress(start.y,event.clientY);
+  indicator.style.setProperty('--pull-distance',state.distance+'px');indicator.classList.add('pulling');indicator.classList.toggle('armed',state.armed);
+  indicator.querySelector('span').textContent=state.armed?'Release to refresh':'Pull to refresh';
+ },{passive:false});
+ target.addEventListener('pointerup',async event=>{
+  if(pointer!==event.pointerId)return;pointer=null;const armed=pulling&&indicator.classList.contains('armed');reset();if(!armed||busy)return;
+  busy=true;indicator.classList.add('refreshing');indicator.querySelector('span').textContent='Refreshing…';
+  try{await refresh();}finally{busy=false;indicator.classList.remove('refreshing');}
+ });
+ target.addEventListener('pointercancel',()=>{pointer=null;reset();});
 }

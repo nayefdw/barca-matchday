@@ -1,6 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {pullProgress,installPullRefresh} from '../public/pull-refresh.js';
+test('Windows mouse drag refreshes only after a deliberate downward release and ignores cancellation',async()=>{
+ globalThis.window={scrollY:0};const listeners={},classes=new Set();let calls=0;
+ const indicator={style:{setProperty(){},removeProperty(){}},classList:{add(...v){v.forEach(x=>classes.add(x));},remove(...v){v.forEach(x=>classes.delete(x));},contains:v=>classes.has(v),toggle(v,on){on?classes.add(v):classes.delete(v);}},querySelector:()=>({textContent:''})};
+ installPullRefresh({indicator,target:{addEventListener(t,fn){listeners[t]=fn;}},refresh:async()=>calls++});
+ const event=y=>({pointerType:'mouse',pointerId:1,button:0,buttons:1,clientX:20,clientY:y,target:{closest:()=>null},preventDefault(){}});
+ listeners.pointerdown(event(100));listeners.pointermove(event(140));await listeners.pointerup(event(140));assert.equal(calls,0);
+ listeners.pointerdown(event(100));listeners.pointermove(event(280));await listeners.pointerup(event(280));assert.equal(calls,1);
+ listeners.pointerdown(event(100));listeners.pointermove(event(280));listeners.pointercancel();await listeners.pointerup(event(280));assert.equal(calls,1);delete globalThis.window;
+});
 test('pull-to-refresh has resistance, a release threshold and a capped distance',()=>{
  assert.deepEqual(pullProgress(100,90),{distance:0,armed:false,progress:0});
  assert.equal(pullProgress(100,200).armed,false);assert.equal(pullProgress(100,250).armed,true);assert.equal(pullProgress(0,900).distance,110);

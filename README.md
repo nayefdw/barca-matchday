@@ -2,7 +2,7 @@
 
 A lightweight mobile-first PWA: a stadium match card, searchable fixtures and results, a monthly calendar, News / Squad / Stats sections, and an iPhone calendar subscription. Plain HTML, CSS and JavaScript; Cloudflare Worker + KV public cache and a SQLite-backed match-time scheduler.
 
-## Design and features · version 2.7.0
+## Design and features · version 2.8.0
 
 - A blended translucent header with an original blue/red monogram, Barça / Matchday branding, and no Cartel word in the banner. Floating glass cards, soft blue/garnet lighting, blue/red active-tab accents and a floating bottom navigation bar.
 - Home: next match with full club names and real crests, prominent kickoff, glass days/hours/minutes/seconds countdown, LIVE/half-time status and the latest delayed score, Previous / Then / After fixture strip, recent form and match sharing. Sharing uses the device share sheet or copy fallback; a public real-data deployment includes a match link.
@@ -34,6 +34,16 @@ npm test
 ```
 
 The preview uses clearly labelled **illustrative fixtures**, anchored to the day it starts. It is not the real Barcelona schedule. Calendar subscriptions and single-event exports are disabled for sample data. `node dev/server.js --empty` previews the initial state with no data connected. `node dev/server.js --live-preview` displays an explicitly illustrative 2–1 live poster; this never touches production data.
+
+## Release 2.8.0 · compact squads, Windows refresh and quieter updates
+
+Match squad is a closed, expandable disclosure with the pitch, team selection, substitutes and actual on/off substitution events with match minutes. Expansion state survives background match updates and team changes. Credits and photo licenses move to Settings, including individual original-image links. Settings has shortcuts for poster, bar, photos, reminders, calendar, time, data and credits. Windows mouse/pen dragging from noninteractive page content at the top now uses the existing release-to-refresh feedback; touch remains supported, and cancellation/duplicate/modal guards remain in place.
+
+27 current original club portrait URLs were extracted from the official FC Barcelona squad page and matched by official ID for lineups and names/biography aliases for profiles. Existing licensed Wikimedia images remain the fallback. Google search thumbnails are not used as an image host. Credit metadata remains available centrally. These portraits are a checked roster snapshot and may need updating as club imagery changes.
+
+Live score checks are reduced from 20 seconds to one minute; shared statistics refresh at most every two minutes and pre-match lineup checks run every five minutes. No polling is added on idle days. ESPN's public scoreboard and roster endpoints returned HTTP 200 during research, but lower actual live-source latency was not verified, so production retains the already-mapped club feed. The final-result ten-minute poster window is unchanged. Shell v30 distributes this release.
+
+124 automated checks pass. The browser preview is disabled in Work settings, so a new visual/native Windows click-through was not performed. Mouse pointer event sequences, cancellation, substitutions, safe rendering, source cache intervals, scheduler restart and reminder deduplication are covered by automated checks.
 
 ## Release 2.7.0 · match lineups and poster controls
 
